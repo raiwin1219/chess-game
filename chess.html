@@ -398,7 +398,7 @@
     </style>
 </head>
 <body>
-    <div class="coin-display" onclick="openShop()">
+    <div class="coin-display" onclick="playSoundSafe('click');openShop()">
         <span>🪙</span>
         <span id="coinCount">0</span>
     </div>
@@ -406,12 +406,12 @@
     <div class="menu" id="menu">
         <h1>♟️ Chess</h1>
         <p>A classic two-player strategy game</p>
-        <button class="menu-btn" onclick="startGame(false)">2 Players</button>
+        <button class="menu-btn" onclick="playSoundSafe('click');startGame(false)">2 Players</button>
         <div id="aiMenu" style="margin-top: 30px; text-align: center;">
             <p style="margin-bottom: 15px; color: #aaa;">vs AI</p>
-            <button class="menu-btn" style="padding: 12px 25px; font-size: 1.1rem; margin: 5px;" onclick="startGameAI(1)">Easy</button>
-            <button class="menu-btn" style="padding: 12px 25px; font-size: 1.1rem; margin: 5px;" onclick="startGameAI(2)">Medium</button>
-            <button class="menu-btn" style="padding: 12px 25px; font-size: 1.1rem; margin: 5px;" onclick="startGameAI(3)">Hard</button>
+            <button class="menu-btn" style="padding: 12px 25px; font-size: 1.1rem; margin: 5px;" onclick="playSoundSafe('click');startGameAI(1)">Easy</button>
+            <button class="menu-btn" style="padding: 12px 25px; font-size: 1.1rem; margin: 5px;" onclick="playSoundSafe('click');startGameAI(2)">Medium</button>
+            <button class="menu-btn" style="padding: 12px 25px; font-size: 1.1rem; margin: 5px;" onclick="playSoundSafe('click');startGameAI(3)">Hard</button>
         </div>
     </div>
     
@@ -435,9 +435,9 @@
         </div>
         
         <div class="btns">
-            <button class="btn" onclick="resetGame()">New Game</button>
-            <button class="btn" onclick="resign()">Resign</button>
-            <button class="btn" onclick="goMenu()">Menu</button>
+            <button class="btn" onclick="playSoundSafe('click');resetGame()">New Game</button>
+            <button class="btn" onclick="playSoundSafe('click');resign()">Resign</button>
+            <button class="btn" onclick="playSoundSafe('click');goMenu()">Menu</button>
         </div>
     </div>
     
@@ -445,7 +445,7 @@
         <div class="over-box">
             <h2 id="overTitle">Checkmate!</h2>
             <p id="overMsg">White wins!</p>
-            <button class="menu-btn" onclick="resetGame()">Play Again</button>
+            <button class="menu-btn" onclick="playSoundSafe('click');resetGame()">Play Again</button>
         </div>
     </div>
     
@@ -458,7 +458,7 @@
                     <span>🪙</span>
                     <span id="shopCoins">0</span>
                 </div>
-                <button class="close-btn" onclick="closeShop()">×</button>
+                <button class="close-btn" onclick="playSoundSafe('click');closeShop()">×</button>
             </div>
             
             <div class="earn-section">
@@ -557,6 +557,111 @@
         let gameMode = 'pvp';
         let aiLevel = 0;
         
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            
+            if (type === 'move') {
+                // Soft click for piece movement
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'capture') {
+                // Impact sound for captures
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.15);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } else if (type === 'check') {
+                // Alert tone for check
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.setValueAtTime(600, now + 0.1);
+                osc.frequency.setValueAtTime(800, now + 0.2);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.setValueAtTime(0.1, now + 0.25);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } else if (type === 'mate') {
+                // Victory fanfare
+                const notes = [523, 659, 784, 1047];
+                notes.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + i * 0.15);
+                    gain.gain.setValueAtTime(0.15, now + i * 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.3);
+                    osc.start(now + i * 0.15);
+                    osc.stop(now + i * 0.15 + 0.3);
+                });
+            } else if (type === 'coin') {
+                // Coin collect sound
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1200, now);
+                osc.frequency.setValueAtTime(1500, now + 0.05);
+                osc.frequency.setValueAtTime(1800, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            } else if (type === 'click') {
+                // UI click
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.setValueAtTime(400, now);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } else if (type === 'select') {
+                // Piece select
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.setValueAtTime(500, now + 0.05);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            }
+        }
+        
+        function playSoundSafe(type) {
+            try { playSound(type); } catch(e) {}
+        }
+        
         function init() {
             loadData();
             const br = ['r','n','b','q','k','b','n','r'];
@@ -611,6 +716,7 @@
             coins += amount;
             updateCoinDisplay();
             saveData();
+            if (amount > 0) playSoundSafe('coin');
         }
         
         function updateCoinDisplay() {
@@ -955,12 +1061,15 @@
             
             if (sel) {
                 if (moves.some(m => m[0] === r && m[1] === c)) {
+                    const isCapture = board[r][c] !== null;
                     move(sel[0], sel[1], r, c);
+                    playSoundSafe(isCapture ? 'capture' : 'move');
                     sel = null;
                     moves = [];
                     return;
                 }
                 if (p && col(p) === turn) {
+                    playSoundSafe('select');
                     sel = [r, c];
                     moves = valid(r, c);
                 } else {
@@ -969,6 +1078,7 @@
                 }
             } else {
                 if (p && col(p) === turn) {
+                    playSoundSafe('select');
                     sel = [r, c];
                     moves = valid(r, c);
                 }
@@ -996,13 +1106,16 @@
             if (mate()) {
                 over = true;
                 addCoins(25);
+                playSoundSafe('mate');
                 showOver(turn === 'white' ? 'Black' : 'White', 'CHECKMATE!');
             } else if (stalemate()) {
                 over = true;
                 addCoins(5);
+                playSoundSafe('mate');
                 showOver('Neither', 'STALEMATE - Draw!');
             } else {
                 render();
+                if (inCheck(turn)) playSoundSafe('check');
                 if (gameMode !== 'pvp' && turn === 'black' && aiLevel > 0) {
                     setTimeout(aiMove, 500);
                 }
@@ -1024,18 +1137,18 @@
             
             if (pieces.length === 0) return;
             
-            let move;
+            let aiMoveChoice;
             if (aiLevel === 1) {
-                move = pieces[Math.floor(Math.random() * pieces.length)];
-                move = { from: [move.r, move.c], to: move.moves[Math.floor(Math.random() * move.moves.length)] };
+                const pc = pieces[Math.floor(Math.random() * pieces.length)];
+                aiMoveChoice = { from: [pc.r, pc.c], to: pc.moves[Math.floor(Math.random() * pc.moves.length)] };
             } else if (aiLevel === 2) {
                 const captures = pieces.filter(x => x.moves.some(m => board[m[0]][m[1]]));
                 if (captures.length > 0) {
-                    const p = captures[Math.floor(Math.random() * captures.length)];
-                    move = { from: [p.r, p.c], to: p.moves.find(m => board[m[0]][m[1]]) };
+                    const pc = captures[Math.floor(Math.random() * captures.length)];
+                    aiMoveChoice = { from: [pc.r, pc.c], to: pc.moves.find(m => board[m[0]][m[1]]) };
                 } else {
-                    move = pieces[Math.floor(Math.random() * pieces.length)];
-                    move = { from: [move.r, move.c], to: move.moves[Math.floor(Math.random() * move.moves.length)] };
+                    const pc = pieces[Math.floor(Math.random() * pieces.length)];
+                    aiMoveChoice = { from: [pc.r, pc.c], to: pc.moves[Math.floor(Math.random() * pc.moves.length)] };
                 }
             } else {
                 let bestScore = -1000;
@@ -1056,14 +1169,10 @@
                         }
                     }
                 }
-                move = candidates[Math.floor(Math.random() * candidates.length)];
+                aiMoveChoice = candidates[Math.floor(Math.random() * candidates.length)];
             }
             
-            sel = move.from;
-            moves = valid(sel[0], sel[1]);
-            move(move.from[0], move.from[1], move.to[0], move.to[1]);
-            sel = null;
-            moves = [];
+            move(aiMoveChoice.from[0], aiMoveChoice.from[1], aiMoveChoice.to[0], aiMoveChoice.to[1]);
         }
         
         function mate() {
