@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess ♟️</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            padding: 20px;
+        }
+        
+        .menu { text-align: center; }
+        .menu.hidden { display: none; }
+        .menu h1 { font-size: 4rem; margin-bottom: 10px; }
+        .menu p { font-size: 1.2rem; color: #aaa; margin-bottom: 40px; }
+        .menu-btn {
+            padding: 20px 50px;
+            font-size: 1.5rem;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #00c853, #00e676);
+            color: #000;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .menu-btn:hover { transform: scale(1.05); }
+        
+        .game { display: none; flex-direction: column; align-items: center; }
+        .game.active { display: flex; }
+        .game-header { text-align: center; margin-bottom: 15px; }
+        .game-header h2 { font-size: 1.5rem; margin-bottom: 5px; }
+        
+        .game-status {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        
+        .status-white { background: rgba(255,255,255,0.15); border: 2px solid #fff; }
+        .status-black { background: rgba(30,30,30,0.6); border: 2px solid #888; color: #ddd; }
+        
+        .status-check {
+            background: rgba(255,80,80,0.4) !important;
+            border-color: #ff6666 !important;
+        }
+        
+        .board {
+            display: block;
+            width: 480px;
+            height: 480px;
+            border: 4px solid #555;
+            background: #555;
+        }
+        
+        .row {
+            display: flex;
+            width: 100%;
+            height: 60px;
+        }
+        
+        .sq {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 46px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .sq:hover { filter: brightness(1.15); }
+        
+        .light { background: #f0d9b5; }
+        .dark { background: #b58863; }
+        
+        .pc { user-select: none; color: #fff; text-shadow: 0 1px 3px #000; }
+        
+        .sq.selected { box-shadow: inset 0 0 0 4px #00ff88; }
+        
+        .sq.valid::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(0,180,0,0.6);
+            border-radius: 50%;
+        }
+        
+        .sq.capture::after {
+            content: '';
+            position: absolute;
+            width: 54px;
+            height: 54px;
+            border: 4px solid rgba(200,0,0,0.6);
+            border-radius: 50%;
+        }
+        
+        .captures {
+            margin-top: 15px;
+            display: flex;
+            gap: 25px;
+        }
+        
+        .cap-box {
+            min-width: 140px;
+            min-height: 45px;
+            padding: 10px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .cap-box span { font-size: 22px; }
+        .cap-label { font-size: 0.75rem; color: #888; text-align: center; margin-top: 5px; }
+        
+        .btns { margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        
+        .btn {
+            padding: 12px 25px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        
+        .btn:hover { background: rgba(255,255,255,0.25); transform: translateY(-2px); }
+        
+        .coin-display {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(255,170,0,0.4);
+            cursor: pointer;
+        }
+        
+        .coin-display:hover { transform: scale(1.05); }
+        
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        .overlay.active { display: flex; }
+        
+        .over-box {
+            background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        
+        .over-box h2 { font-size: 2.5rem; margin-bottom: 15px; }
+        .over-box p { font-size: 1.3rem; color: #aaa; margin-bottom: 30px; }
+        
+        /* Shop Styles */
+        .shop-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .shop-overlay.active { display: flex; }
+        
+        .shop-box {
+            background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .shop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+        
+        .shop-header h2 { font-size: 2rem; }
+        
+        .shop-coins {
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .close-btn {
+            background: rgba(255,80,80,0.8);
+            border: none;
+            color: #fff;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-btn:hover { background: rgba(255,80,80,1); }
+        
+        .shop-section { margin-bottom: 30px; }
+        .shop-section h3 { font-size: 1.3rem; margin-bottom: 15px; color: #aaa; }
+        
+        .skin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .skin-card {
+            background: rgba(255,255,255,0.08);
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 3px solid transparent;
+        }
+        
+        .skin-card:hover { background: rgba(255,255,255,0.15); transform: translateY(-3px); }
+        .skin-card.owned { border-color: #00c853; }
+        .skin-card.equipped { border-color: #ffd700; box-shadow: 0 0 20px rgba(255,215,0,0.3); }
+        
+        .skin-preview {
+            font-size: 40px;
+            margin-bottom: 10px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .skin-name { font-weight: bold; margin-bottom: 5px; }
+        .skin-price { color: #ffd700; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .skin-owned { color: #00c853; font-size: 0.85rem; }
+        
+        .skin-equip-btn {
+            margin-top: 8px;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .skin-equip-btn.buy { background: linear-gradient(135deg, #ffd700, #ffaa00); color: #000; }
+        .skin-equip-btn.equip { background: #00c853; color: #fff; }
+        .skin-equip-btn.equipped { background: #ffd700; color: #000; }
+        
+        /* Earn Section */
+        .earn-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .earn-section h3 { margin-bottom: 15px; color: #aaa; }
+        
+        .earn-tasks {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .earn-task {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .earn-task-info { text-align: left; }
+        .earn-task-info strong { display: block; margin-bottom: 3px; }
+        .earn-task-info span { color: #888; font-size: 0.85rem; }
+        
+        .earn-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .earn-btn.watch {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: #fff;
+        }
+        
+        .earn-btn.watch:hover { transform: scale(1.05); }
+        .earn-btn.watch:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        
+        .earn-btn.claim {
+            background: linear-gradient(135deg, #00c853, #00e676);
+            color: #000;
+        }
+        
+        .ad-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.95);
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+            flex-direction: column;
+        }
+        
+        .ad-modal.active { display: flex; }
+        
+        .ad-content {
+            text-align: center;
+        }
+        
+        .ad-timer {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .ad-skip {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        .ad-complete {
+            display: none;
+            text-align: center;
+        }
+        
+        .ad-complete.active { display: block; }
+        .ad-complete h3 { font-size: 2rem; margin-bottom: 10px; color: #00c853; }
+        .ad-complete p { color: #ffd700; font-size: 1.3rem; }
+        
+        .daily-reset {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="coin-display" onclick="openShop()">
+        <span>🪙</span>
+        <span id="coinCount">0</span>
+    </div>
+    
+    <div class="menu" id="menu">
+        <h1>♟️ Chess</h1>
+        <p>A classic two-player strategy game</p>
+        <button class="menu-btn" onclick="startGame(false)">2 Players</button>
+        <div id="aiMenu" style="margin-top: 30px; text-align: center;">
+            <p style="margin-bottom: 15px; color: #aaa;">vs AI</p>
+            <button class="menu-btn" style="padding: 12px 25px; font-size: 1.1rem; margin: 5px;" onclick="startGameAI(1)">Easy</button>
+            <button class="menu-btn" style="padding: 12px 25px; font-size: 1.1rem; margin: 5px;" onclick="startGameAI(2)">Medium</button>
+            <button class="menu-btn" style="padding: 12px 25px; font-size: 1.1rem; margin: 5px;" onclick="startGameAI(3)">Hard</button>
+        </div>
+    </div>
+    
+    <div class="game" id="game">
+        <div class="game-header">
+            <h2>♟️ Chess</h2>
+            <div id="status">White's Turn</div>
+        </div>
+        
+        <div class="board" id="board"></div>
+        
+        <div class="captures">
+            <div>
+                <div class="cap-box" id="capW"></div>
+                <div class="cap-label">White captured</div>
+            </div>
+            <div>
+                <div class="cap-box" id="capB"></div>
+                <div class="cap-label">Black captured</div>
+            </div>
+        </div>
+        
+        <div class="btns">
+            <button class="btn" onclick="resetGame()">New Game</button>
+            <button class="btn" onclick="resign()">Resign</button>
+            <button class="btn" onclick="goMenu()">Menu</button>
+        </div>
+    </div>
+    
+    <div class="overlay" id="over">
+        <div class="over-box">
+            <h2 id="overTitle">Checkmate!</h2>
+            <p id="overMsg">White wins!</p>
+            <button class="menu-btn" onclick="resetGame()">Play Again</button>
+        </div>
+    </div>
+    
+    <!-- Shop Overlay -->
+    <div class="shop-overlay" id="shopOverlay">
+        <div class="shop-box">
+            <div class="shop-header">
+                <h2>🛒 Shop</h2>
+                <div class="shop-coins">
+                    <span>🪙</span>
+                    <span id="shopCoins">0</span>
+                </div>
+                <button class="close-btn" onclick="closeShop()">×</button>
+            </div>
+            
+            <div class="earn-section">
+                <h3>💰 Earn Coins</h3>
+                <div class="earn-tasks">
+                    <div class="earn-task">
+                        <div class="earn-task-info">
+                            <strong>🎬 Watch Ad</strong>
+                            <span>Earn 15 coins per ad (max 5/day)</span>
+                            <div class="daily-reset" id="adCountdown"></div>
+                        </div>
+                        <button class="earn-btn watch" id="watchAdBtn" onclick="watchAd()">Watch Ad</button>
+                    </div>
+                    <div class="earn-task">
+                        <div class="earn-task-info">
+                            <strong>🏆 Win a Game</strong>
+                            <span>Earn coins for winning matches</span>
+                        </div>
+                        <span style="color: #ffd700;">+25 🪙</span>
+                    </div>
+                    <div class="earn-task">
+                        <div class="earn-task-info">
+                            <strong>🎮 Play a Game</strong>
+                            <span>Complete any match</span>
+                        </div>
+                        <span style="color: #ffd700;">+5 🪙</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="shop-section">
+                <h3>🎨 Piece Skins</h3>
+                <div class="skin-grid" id="skinGrid"></div>
+            </div>
+            
+            <div class="shop-section">
+                <h3>✨ Board Skins</h3>
+                <div class="skin-grid" id="boardSkinGrid"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ad Modal -->
+    <div class="ad-modal" id="adModal">
+        <div class="ad-content" id="adContent">
+            <p style="margin-bottom: 15px; color: #888;">Please wait...</p>
+            <div class="ad-timer" id="adTimer">5</div>
+            <p class="ad-skip">Ad will end shortly</p>
+        </div>
+        <div class="ad-complete" id="adComplete">
+            <h3>✅ Ad Complete!</h3>
+            <p>+15 🪙 Coins Earned!</p>
+            <button class="menu-btn" style="margin-top: 20px;" onclick="closeAdModal()">Awesome!</button>
+        </div>
+    </div>
+
+    <script>
+        const P = {
+            K:'♔', Q:'♕', R:'♖', B:'♗', N:'♘', P:'♙',
+            k:'♚', q:'♛', r:'♜', b:'♝', n:'♞', p:'♟'
+        };
+        
+        // Piece Skins
+        const PIECE_SKINS = [
+            { id: 'default', name: 'Classic', price: 0, pieces: { K:'♔', Q:'♕', R:'♖', B:'♗', N:'♘', P:'♙', k:'♚', q:'♛', r:'♜', b:'♝', n:'♞', p:'♟' } },
+            { id: 'gold', name: 'Gold Royal', price: 50, pieces: { K:'⚜', Q:'⟆', R:'⛉', B:'⟡', N:'⛊', P:'✿', k:'☿', q:'❂', r:'ჯ', b:'ღ', n:'✦', p:'✧' } },
+            { id: 'neon', name: 'Neon Glow', price: 75, pieces: { K:'★', Q:'✡', R:'◈', B:'◇', N:'⬡', P:'✦', k:'☠', q:'⚡', r:'✦', b:'✧', n:'⚔', p:'♦' } },
+            { id: 'emoji', name: 'Emoji Style', price: 100, pieces: { K:'👑', Q:'👸', R:'🏰', B:'🎭', N:'🐴', P:'👶', k:'🤴', q:'👸', r:'🏰', b:'🎭', n:'🐴', p:'👶' } },
+            { id: 'fire', name: 'Fire Elements', price: 150, pieces: { K:'🔥', Q:'✨', R:'💎', B:'🌟', N:'⚡', P:'💥', k:'❄', q:'🌙', r:'🍃', b:'🌸', n:'🌊', p:'⚽' } },
+            { id: 'space', name: 'Space Age', price: 200, pieces: { K:'🛸', Q:'🌍', R:'🚀', B:'🌙', N:'☄', P:'⭐', k:'🪐', q:'🌟', r:'☀️', b:'🌛', n:'🌜', p:'🌠' } },
+        ];
+        
+        // Board Skins
+        const BOARD_SKINS = [
+            { id: 'classic', name: 'Classic Wood', price: 0, light: '#f0d9b5', dark: '#b58863' },
+            { id: 'marble', name: 'Marble', price: 100, light: '#e8e8e8', dark: '#4a4a4a' },
+            { id: 'ocean', name: 'Ocean Blue', price: 150, light: '#a8d8ea', dark: '#1e3a5f' },
+            { id: 'forest', name: 'Forest Green', price: 150, light: '#90EE90', dark: '#228B22' },
+            { id: 'sunset', name: 'Sunset', price: 200, light: '#FFDAB9', dark: '#FF6347' },
+            { id: 'purple', name: 'Royal Purple', price: 250, light: '#DDA0DD', dark: '#4B0082' },
+        ];
+        
+        let board = [];
+        let turn = 'white';
+        let sel = null;
+        let moves = [];
+        let capW = [];
+        let capB = [];
+        let over = false;
+        let coins = 0;
+        let adsWatchedToday = 0;
+        let adWatchDate = null;
+        let ownedSkins = { pieces: ['default'], boards: ['classic'] };
+        let equippedSkin = 'default';
+        let equippedBoard = 'classic';
+        let gameMode = 'pvp';
+        let aiLevel = 0;
+        
+        function init() {
+            loadData();
+            const br = ['r','n','b','q','k','b','n','r'];
+            board = [];
+            for (let r = 0; r < 8; r++) {
+                board[r] = [];
+                for (let c = 0; c < 8; c++) {
+                    if (r === 0) board[r][c] = br[c];
+                    else if (r === 1) board[r][c] = 'p';
+                    else if (r === 6) board[r][c] = 'P';
+                    else if (r === 7) board[r][c] = br[c].toUpperCase();
+                    else board[r][c] = null;
+                }
+            }
+        }
+        
+        function loadData() {
+            const saved = localStorage.getItem('chessShop');
+            if (saved) {
+                const data = JSON.parse(saved);
+                coins = data.coins || 0;
+                ownedSkins = data.ownedSkins || { pieces: ['default'], boards: ['classic'] };
+                equippedSkin = data.equippedSkin || 'default';
+                equippedBoard = data.equippedBoard || 'classic';
+                
+                const today = new Date().toDateString();
+                if (data.adWatchDate !== today) {
+                    adsWatchedToday = 0;
+                    adWatchDate = today;
+                } else {
+                    adsWatchedToday = data.adsWatchedToday || 0;
+                    adWatchDate = data.adWatchDate;
+                }
+            }
+            updateCoinDisplay();
+            updateAdButton();
+        }
+        
+        function saveData() {
+            const data = {
+                coins,
+                ownedSkins,
+                equippedSkin,
+                equippedBoard,
+                adsWatchedToday,
+                adWatchDate: adWatchDate || new Date().toDateString()
+            };
+            localStorage.setItem('chessShop', JSON.stringify(data));
+        }
+        
+        function addCoins(amount) {
+            coins += amount;
+            updateCoinDisplay();
+            saveData();
+        }
+        
+        function updateCoinDisplay() {
+            document.getElementById('coinCount').textContent = coins;
+            document.getElementById('shopCoins').textContent = coins;
+        }
+        
+        function updateAdButton() {
+            const btn = document.getElementById('watchAdBtn');
+            const remaining = 5 - adsWatchedToday;
+            if (remaining <= 0) {
+                btn.disabled = true;
+                btn.textContent = 'No more today';
+            } else {
+                btn.disabled = false;
+                btn.textContent = `Watch Ad (${remaining} left)`;
+            }
+        }
+        
+        function openShop() {
+            document.getElementById('shopOverlay').classList.add('active');
+            renderSkins();
+        }
+        
+        function closeShop() {
+            document.getElementById('shopOverlay').classList.remove('active');
+        }
+        
+        function renderSkins() {
+            const pieceGrid = document.getElementById('skinGrid');
+            const boardGrid = document.getElementById('boardSkinGrid');
+            
+            pieceGrid.innerHTML = PIECE_SKINS.map(skin => {
+                const owned = ownedSkins.pieces.includes(skin.id);
+                const equipped = equippedSkin === skin.id;
+                let btnClass = owned ? (equipped ? 'equipped' : 'equip') : 'buy';
+                let btnText = equipped ? 'Equipped ★' : (owned ? 'Equip' : `Buy ${skin.price} 🪙`);
+                
+                return `
+                    <div class="skin-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}" onclick="togglePieceSkin('${skin.id}')">
+                        <div class="skin-preview">${skin.pieces.K}</div>
+                        <div class="skin-name">${skin.name}</div>
+                        ${owned ? 
+                            `<div class="skin-owned">Owned</div>` : 
+                            `<div class="skin-price">🪙 ${skin.price}</div>`
+                        }
+                        <button class="skin-equip-btn ${btnClass}">${btnText}</button>
+                    </div>
+                `;
+            }).join('');
+            
+            boardGrid.innerHTML = BOARD_SKINS.map(skin => {
+                const owned = ownedSkins.boards.includes(skin.id);
+                const equipped = equippedBoard === skin.id;
+                let btnClass = owned ? (equipped ? 'equipped' : 'equip') : 'buy';
+                let btnText = equipped ? 'Equipped ★' : (owned ? 'Equip' : `Buy ${skin.price} 🪙`);
+                
+                return `
+                    <div class="skin-card ${owned ? 'owned' : ''} ${equipped ? 'equipped' : ''}" onclick="toggleBoardSkin('${skin.id}')">
+                        <div class="skin-preview">
+                            <div style="display: flex; gap: 2px;">
+                                <div style="width: 30px; height: 30px; background: ${skin.light}; border-radius: 3px;"></div>
+                                <div style="width: 30px; height: 30px; background: ${skin.dark}; border-radius: 3px;"></div>
+                            </div>
+                        </div>
+                        <div class="skin-name">${skin.name}</div>
+                        ${owned ? 
+                            `<div class="skin-owned">Owned</div>` : 
+                            `<div class="skin-price">🪙 ${skin.price}</div>`
+                        }
+                        <button class="skin-equip-btn ${btnClass}">${btnText}</button>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function togglePieceSkin(id) {
+            const skin = PIECE_SKINS.find(s => s.id === id);
+            if (!skin) return;
+            
+            if (ownedSkins.pieces.includes(id)) {
+                equippedSkin = id;
+                saveData();
+                renderSkins();
+                render();
+            } else {
+                if (coins >= skin.price) {
+                    coins -= skin.price;
+                    ownedSkins.pieces.push(id);
+                    equippedSkin = id;
+                    updateCoinDisplay();
+                    saveData();
+                    renderSkins();
+                    render();
+                } else {
+                    alert(`Not enough coins! Need ${skin.price} 🪙`);
+                }
+            }
+        }
+        
+        function toggleBoardSkin(id) {
+            const skin = BOARD_SKINS.find(s => s.id === id);
+            if (!skin) return;
+            
+            if (ownedSkins.boards.includes(id)) {
+                equippedBoard = id;
+                saveData();
+                renderSkins();
+                render();
+            } else {
+                if (coins >= skin.price) {
+                    coins -= skin.price;
+                    ownedSkins.boards.push(id);
+                    equippedBoard = id;
+                    updateCoinDisplay();
+                    saveData();
+                    renderSkins();
+                    render();
+                } else {
+                    alert(`Not enough coins! Need ${skin.price} 🪙`);
+                }
+            }
+        }
+        
+        function watchAd() {
+            if (adsWatchedToday >= 5) {
+                updateAdButton();
+                return;
+            }
+            
+            document.getElementById('adModal').classList.add('active');
+            document.getElementById('adContent').style.display = 'block';
+            document.getElementById('adComplete').classList.remove('active');
+            
+            let countdown = 5;
+            const timer = document.getElementById('adTimer');
+            timer.textContent = countdown;
+            
+            const interval = setInterval(() => {
+                countdown--;
+                timer.textContent = countdown;
+                if (countdown <= 0) {
+                    clearInterval(interval);
+                    adsWatchedToday++;
+                    adWatchDate = new Date().toDateString();
+                    addCoins(15);
+                    saveData();
+                    updateAdButton();
+                    
+                    document.getElementById('adContent').style.display = 'none';
+                    document.getElementById('adComplete').classList.add('active');
+                }
+            }, 1000);
+        }
+        
+        function closeAdModal() {
+            document.getElementById('adModal').classList.remove('active');
+        }
+        
+        function getCurrentPieceSkin() {
+            const skin = PIECE_SKINS.find(s => s.id === equippedSkin);
+            return skin ? skin.pieces : P;
+        }
+        
+        function getCurrentBoardSkin() {
+            const skin = BOARD_SKINS.find(s => s.id === equippedBoard);
+            if (skin) return { light: skin.light, dark: skin.dark };
+            // Fallback if board skin not found
+            equippedBoard = 'classic';
+            return { light: '#f0d9b5', dark: '#b58863' };
+        }
+        
+        function col(p) {
+            if (!p) return null;
+            return p === p.toUpperCase() ? 'white' : 'black';
+        }
+        
+        function findK(c) {
+            const k = c === 'white' ? 'K' : 'k';
+            for (let r = 0; r < 8; r++)
+                for (let cc = 0; cc < 8; cc++)
+                    if (board[r][cc] === k) return [r, cc];
+        }
+        
+        function attacked(r, c, by) {
+            for (let rr = 0; rr < 8; rr++)
+                for (let cc = 0; cc < 8; cc++) {
+                    const p = board[rr][cc];
+                    if (p && col(p) === by) {
+                        const m = raw(rr, cc, p, true);
+                        if (m.some(x => x[0] === r && x[1] === c)) return true;
+                    }
+                }
+            return false;
+        }
+        
+        function inCheck(c) {
+            const k = findK(c);
+            if (!k) return false;
+            return attacked(k[0], k[1], c === 'white' ? 'black' : 'white');
+        }
+        
+        function raw(r, c, p, atk) {
+            const moves = [];
+            const tc = col(p);
+            const t = p.toLowerCase();
+            
+            const add = (dr, dc) => {
+                const nr = r + dr, nc = c + dc;
+                if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                    if (atk) moves.push([nr, nc]);
+                    else if (!board[nr][nc]) moves.push([nr, nc]);
+                    else if (col(board[nr][nc]) !== tc) moves.push([nr, nc]);
+                }
+            };
+            
+            const ray = (dr, dc) => {
+                for (let i = 1; i < 8; i++) {
+                    const nr = r + dr * i, nc = c + dc * i;
+                    if (nr < 0 || nr >= 8 || nc < 0 || nc >= 8) break;
+                    if (board[nr][nc]) {
+                        if (col(board[nr][nc]) !== tc) moves.push([nr, nc]);
+                        break;
+                    }
+                    moves.push([nr, nc]);
+                }
+            };
+            
+            switch (t) {
+                case 'p':
+                    const dir = tc === 'white' ? -1 : 1;
+                    if (!atk) {
+                        if (!board[r + dir]?.[c]) {
+                            moves.push([r + dir, c]);
+                            const start = tc === 'white' ? 6 : 1;
+                            if (r === start && !board[r + dir * 2]?.[c])
+                                moves.push([r + dir * 2, c]);
+                        }
+                    }
+                    for (const dc of [-1, 1]) {
+                        const nr = r + dir, nc = c + dc;
+                        if (nr >= 0 && nr < 8 && nc >= 0 && nc < 8) {
+                            if (atk || (board[nr][nc] && col(board[nr][nc]) !== tc))
+                                moves.push([nr, nc]);
+                        }
+                    }
+                    break;
+                case 'n':
+                    [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(([dr,dc]) => add(dr, dc));
+                    break;
+                case 'b':
+                    [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([dr,dc]) => ray(dr, dc));
+                    break;
+                case 'r':
+                    [[-1,0],[1,0],[0,-1],[0,1]].forEach(([dr,dc]) => ray(dr, dc));
+                    break;
+                case 'q':
+                    [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]].forEach(([dr,dc]) => ray(dr, dc));
+                    break;
+                case 'k':
+                    [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]].forEach(([dr,dc]) => add(dr, dc));
+                    break;
+            }
+            return moves;
+        }
+        
+        function valid(r, c) {
+            const p = board[r][c];
+            if (!p) return [];
+            const c2 = col(p);
+            return raw(r, c, p).filter(([nr, nc]) => {
+                const b = board[nr][nc];
+                board[nr][nc] = p;
+                board[r][c] = null;
+                const chk = inCheck(c2);
+                board[r][c] = p;
+                board[nr][nc] = b;
+                return !chk;
+            });
+        }
+        
+        function render() {
+            const el = document.getElementById('board');
+            el.innerHTML = '';
+            const skin = getCurrentPieceSkin();
+            const boardSkin = getCurrentBoardSkin();
+            
+            for (let r = 0; r < 8; r++) {
+                const row = document.createElement('div');
+                row.className = 'row';
+                
+                for (let c = 0; c < 8; c++) {
+                    const sq = document.createElement('div');
+                    const light = (r + c) % 2 === 0;
+                    sq.className = 'sq';
+                    sq.style.background = light ? boardSkin.light : boardSkin.dark;
+                    sq.dataset.r = r;
+                    sq.dataset.c = c;
+                    
+                    if (sel && sel[0] === r && sel[1] === c) sq.classList.add('selected');
+                    if (moves.some(m => m[0] === r && m[1] === c))
+                        sq.classList.add(board[r][c] ? 'capture' : 'valid');
+                    
+                    const pc = board[r][c];
+                    if (pc) {
+                        const sp = document.createElement('span');
+                        sp.className = 'pc';
+                        sp.textContent = skin[pc] || P[pc];
+                        const pieceColor = pc === pc.toUpperCase() ? '#fff' : '#111';
+                        sp.style.color = pieceColor;
+                        if (equippedSkin !== 'default') {
+                            sp.style.textShadow = '0 2px 4px rgba(0,0,0,0.5)';
+                        }
+                        sq.appendChild(sp);
+                    }
+                    
+                    sq.onclick = () => click(r, c);
+                    row.appendChild(sq);
+                }
+                
+                el.appendChild(row);
+            }
+            
+            const st = document.getElementById('status');
+            st.className = 'game-status ' + (turn === 'white' ? 'status-white' : 'status-black');
+            if (inCheck(turn)) {
+                st.classList.add('status-check');
+                st.textContent = turn === 'white' ? "White is in CHECK!" : "Black is in CHECK!";
+            } else {
+                st.textContent = turn === 'white' ? "White's Turn" : "Black's Turn";
+            }
+            
+            document.getElementById('capW').innerHTML = capW.map(p => `<span>${P[p]}</span>`).join('');
+            document.getElementById('capB').innerHTML = capB.map(p => `<span>${P[p]}</span>`).join('');
+        }
+        
+        function click(r, c) {
+            if (over) return;
+            if (gameMode !== 'pvp' && turn === 'black' && aiLevel > 0) return;
+            
+            const p = board[r][c];
+            
+            if (sel) {
+                if (moves.some(m => m[0] === r && m[1] === c)) {
+                    move(sel[0], sel[1], r, c);
+                    sel = null;
+                    moves = [];
+                    return;
+                }
+                if (p && col(p) === turn) {
+                    sel = [r, c];
+                    moves = valid(r, c);
+                } else {
+                    sel = null;
+                    moves = [];
+                }
+            } else {
+                if (p && col(p) === turn) {
+                    sel = [r, c];
+                    moves = valid(r, c);
+                }
+            }
+            render();
+        }
+        
+        function move(fr, fc, tr, tc) {
+            const p = board[fr][fc];
+            const cap = board[tr][tc];
+            
+            if (cap) {
+                if (col(cap) === 'white') capB.push(cap);
+                else capW.push(cap);
+            }
+            
+            board[tr][tc] = p;
+            board[fr][fc] = null;
+            
+            if (p.toLowerCase() === 'p' && (tr === 0 || tr === 7))
+                board[tr][tc] = turn === 'white' ? 'Q' : 'q';
+            
+            turn = turn === 'white' ? 'black' : 'white';
+            
+            if (mate()) {
+                over = true;
+                addCoins(25);
+                showOver(turn === 'white' ? 'Black' : 'White', 'CHECKMATE!');
+            } else if (stalemate()) {
+                over = true;
+                addCoins(5);
+                showOver('Neither', 'STALEMATE - Draw!');
+            } else {
+                render();
+                if (gameMode !== 'pvp' && turn === 'black' && aiLevel > 0) {
+                    setTimeout(aiMove, 500);
+                }
+            }
+        }
+        
+        function aiMove() {
+            if (over || turn !== 'black') return;
+            
+            const pieces = [];
+            for (let r = 0; r < 8; r++)
+                for (let c = 0; c < 8; c++) {
+                    const p = board[r][c];
+                    if (p && col(p) === 'black') {
+                        const vm = valid(r, c);
+                        if (vm.length > 0) pieces.push({ r, c, moves: vm });
+                    }
+                }
+            
+            if (pieces.length === 0) return;
+            
+            let move;
+            if (aiLevel === 1) {
+                move = pieces[Math.floor(Math.random() * pieces.length)];
+                move = { from: [move.r, move.c], to: move.moves[Math.floor(Math.random() * move.moves.length)] };
+            } else if (aiLevel === 2) {
+                const captures = pieces.filter(x => x.moves.some(m => board[m[0]][m[1]]));
+                if (captures.length > 0) {
+                    const p = captures[Math.floor(Math.random() * captures.length)];
+                    move = { from: [p.r, p.c], to: p.moves.find(m => board[m[0]][m[1]]) };
+                } else {
+                    move = pieces[Math.floor(Math.random() * pieces.length)];
+                    move = { from: [move.r, move.c], to: move.moves[Math.floor(Math.random() * move.moves.length)] };
+                }
+            } else {
+                let bestScore = -1000;
+                const candidates = [];
+                for (const pc of pieces) {
+                    for (const m of pc.moves) {
+                        let score = 0;
+                        const cap = board[m[0]][m[1]];
+                        if (cap) score = 10;
+                        if (m[0] === 7 || m[0] === 0) score += 3;
+                        if (Math.random() < 0.3) score += Math.random() * 2;
+                        if (score > bestScore) {
+                            bestScore = score;
+                            candidates.length = 0;
+                            candidates.push({ from: [pc.r, pc.c], to: m });
+                        } else if (score === bestScore) {
+                            candidates.push({ from: [pc.r, pc.c], to: m });
+                        }
+                    }
+                }
+                move = candidates[Math.floor(Math.random() * candidates.length)];
+            }
+            
+            sel = move.from;
+            moves = valid(sel[0], sel[1]);
+            move(move.from[0], move.from[1], move.to[0], move.to[1]);
+            sel = null;
+            moves = [];
+        }
+        
+        function mate() {
+            for (let r = 0; r < 8; r++)
+                for (let c = 0; c < 8; c++) {
+                    const p = board[r][c];
+                    if (p && col(p) === turn && valid(r, c).length > 0) return false;
+                }
+            return inCheck(turn);
+        }
+        
+        function stalemate() {
+            if (inCheck(turn)) return false;
+            return mate();
+        }
+        
+        function showOver(winner, msg) {
+            document.getElementById('overTitle').textContent = msg;
+            document.getElementById('overMsg').textContent = `${winner} wins! +25 🪙`;
+            document.getElementById('over').classList.add('active');
+            render();
+        }
+        
+        function resign() {
+            if (!over) {
+                over = true;
+                const winner = turn === 'white' ? 'Black' : 'White';
+                addCoins(turn === 'white' ? 0 : 25);
+                document.getElementById('overTitle').textContent = 'RESIGNED';
+                document.getElementById('overMsg').textContent = `${winner} wins! ${winner === 'White' ? '+25 🪙' : ''}`;
+                document.getElementById('over').classList.add('active');
+            }
+        }
+        
+        function resetGame() {
+            document.getElementById('over').classList.remove('active');
+            document.getElementById('shopOverlay').classList.remove('active');
+            document.getElementById('adModal').classList.remove('active');
+            capW = [];
+            capB = [];
+            over = false;
+            sel = null;
+            moves = [];
+            turn = 'white';
+            init();
+            render();
+        }
+        
+        function goMenu() {
+            document.getElementById('game').classList.remove('active');
+            document.getElementById('menu').classList.remove('hidden');
+            document.getElementById('over').classList.remove('active');
+            document.getElementById('shopOverlay').classList.remove('active');
+        }
+        
+        function startGame(isAI) {
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('game').classList.add('active');
+            gameMode = isAI ? 'ai' : 'pvp';
+            resetGame();
+        }
+        
+        function startGameAI(level) {
+            aiLevel = level;
+            startGame(true);
+        }
+        
+        init();
+        render();
+    </script>
+</body>
+</html>
