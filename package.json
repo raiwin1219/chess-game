@@ -1,0 +1,24 @@
+{
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  },
+  "name": "chess-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raiwin1219/chess-game.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/raiwin1219/chess-game/issues"
+  },
+  "homepage": "https://github.com/raiwin1219/chess-game#readme"
+}
