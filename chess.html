@@ -36,7 +36,7 @@
         }
         .menu-btn:hover { transform: scale(1.05); }
 
-        .game { display: none; flex-direction: column; align-items: center; }
+        .game { display: none; flex-direction: column; align-items: center; position: relative; z-index: 50; }
         .game.active { display: flex; }
         .game-header { text-align: center; margin-bottom: 15px; }
         .game-header h2 { font-size: 1.5rem; margin-bottom: 5px; }
@@ -460,6 +460,515 @@
             50% { transform: scale(1.1); opacity: 1; }
         }
         .ad-product-icon { font-size: 3.5rem; margin-bottom: 8px; z-index: 1; }
+
+        @keyframes fogDrift {
+            0% { transform: translateX(-10%) scale(1); opacity: 0.15; }
+            50% { opacity: 0.25; }
+            100% { transform: translateX(10%) scale(1.1); opacity: 0.15; }
+        }
+        @keyframes nightmareFlicker {
+            0%, 95%, 100% { opacity: 1; }
+            96% { opacity: 0.4; }
+            97% { opacity: 0.9; }
+            98% { opacity: 0.3; }
+        }
+        @keyframes nightmarePulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(139,0,0,0.5), inset 0 0 10px rgba(139,0,0,0.2); }
+            50% { box-shadow: 0 0 40px rgba(139,0,0,0.8), inset 0 0 20px rgba(139,0,0,0.4); }
+        }
+        .nightmare-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 50;
+            overflow: hidden;
+        }
+        .nightmare-overlay::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(20,0,10,0.4) 100%);
+            animation: fogDrift 8s ease-in-out infinite alternate;
+        }
+        .nightmare-overlay::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            animation: fogDrift 12s ease-in-out infinite alternate-reverse;
+        }
+        .nightmare-mode .board { animation: nightmarePulse 3s ease-in-out infinite; }
+        .nightmare-mode .game { animation: nightmareFlicker 10s ease-in-out infinite; }
+        .nightmare-mode .game-header h2 {
+            color: #cc0000;
+            text-shadow: 0 0 10px rgba(204,0,0,0.8), 0 0 20px rgba(204,0,0,0.5);
+            animation: nightmareFlicker 5s ease-in-out infinite;
+        }
+        .nightmare-mode .status-white, .nightmare-mode .status-black {
+            color: #ff4444;
+            border-color: #8b0000 !important;
+            background: rgba(80,0,0,0.6) !important;
+        }
+        .nightmare-mode .sq.selected {
+            box-shadow: inset 0 0 0 4px #ff0000, 0 0 15px rgba(255,0,0,0.6) !important;
+        }
+        .nightmare-mode .sq.valid::after {
+            background: rgba(255,0,0,0.5);
+            box-shadow: 0 0 10px rgba(255,0,0,0.5);
+        }
+        .nightmare-mode .sq.capture::after {
+            border-color: rgba(255,50,0,0.7) !important;
+        }
+        .nightmare-mode .coin-display {
+            background: linear-gradient(135deg, #8b0000, #3d0000) !important;
+            color: #ff4444 !important;
+            animation: nightmarePulse 2s ease-in-out infinite;
+        }
+        @keyframes jumpscare {
+            0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+            10% { transform: scale(2.5) rotate(10deg); opacity: 1; }
+            30% { transform: scale(2.5) rotate(-5deg); opacity: 1; }
+            60% { transform: scale(3) rotate(5deg); opacity: 0.8; }
+            100% { transform: scale(4) rotate(-10deg); opacity: 0; }
+        }
+        .jumpscare {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20rem;
+            z-index: 9999;
+            animation: jumpscare 0.5s ease-out forwards;
+            pointer-events: none;
+            filter: drop-shadow(0 0 30px red) drop-shadow(0 0 60px red);
+        }
+        @keyframes screenFlash {
+            0%, 100% { background: transparent; }
+            10%, 30% { background: rgba(139,0,0,0.8); }
+            20% { background: rgba(0,0,0,1); }
+        }
+        .jumpscare-flash {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            pointer-events: none;
+            animation: screenFlash 0.4s ease-out forwards;
+        }
+        @keyframes screenShake {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-15px, 10px); }
+            20% { transform: translate(15px, -10px); }
+            30% { transform: translate(-10px, 15px); }
+            40% { transform: translate(10px, -15px); }
+            50% { transform: translate(-15px, -10px); }
+            60% { transform: translate(15px, 10px); }
+            70% { transform: translate(-10px, -15px); }
+            80% { transform: translate(10px, 15px); }
+            90% { transform: translate(-5px, 5px); }
+        }
+        .jumpscare-shake {
+            animation: screenShake 0.4s ease-out forwards;
+        }
+        @keyframes horrorText {
+            0% { transform: scale(0.5); opacity: 0; }
+            20% { transform: scale(1.2); opacity: 1; }
+            40% { transform: scale(1); }
+            60% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        .jumpscare-text {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            color: #ff0000;
+            font-weight: bold;
+            text-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
+            z-index: 9997;
+            animation: horrorText 0.5s ease-out forwards;
+            pointer-events: none;
+        }
+        /* FNAF 4 Style Room - Nightmare Mode */
+        @keyframes fnafBreathing {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+        @keyframes doorCreak {
+            0%, 100% { transform: perspective(400px) rotateY(0deg); }
+            50% { transform: perspective(400px) rotateY(3deg); }
+        }
+        .fnaf-room {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(180deg, #0a0303 0%, #1a0505 50%, #0d0404 100%);
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .fnaf-room > * { pointer-events: auto; }
+        .fnaf-room::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 40px,
+                rgba(0,0,0,0.3) 40px,
+                rgba(0,0,0,0.3) 41px
+            );
+            pointer-events: none;
+        }
+        /* Dark walls on sides like FNAF doors */
+        .fnaf-wall-left, .fnaf-wall-right {
+            position: fixed;
+            top: 0;
+            height: 100%;
+            width: 120px;
+            background: linear-gradient(90deg, #000000, #1a0505);
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .fnaf-wall-left { left: 0; }
+        .fnaf-wall-right { right: 0; }
+        .fnaf-door {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #0a0505 0%, #000000 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: doorCreak 8s ease-in-out infinite;
+        }
+        .fnaf-door::before {
+            content: '';
+            position: absolute;
+            inset: 20px;
+            border: 2px solid rgba(139,0,0,0.3);
+            border-radius: 5px;
+        }
+        .fnaf-door-handle {
+            width: 15px;
+            height: 40px;
+            background: linear-gradient(180deg, #333, #111);
+            border-radius: 3px;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .fnaf-wall-left .fnaf-door-handle { right: 25px; }
+        .fnaf-wall-right .fnaf-door-handle { left: 25px; }
+        /* Floor like FNAF room */
+        .fnaf-floor {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 150px;
+            background: linear-gradient(180deg, #0d0404, #000);
+            z-index: 1;
+        }
+        .fnaf-floor::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: rgba(139,0,0,0.2);
+        }
+        /* Bed/Board center */
+        .fnaf-board-container {
+            position: relative;
+            z-index: 10;
+            padding: 20px;
+            background: linear-gradient(135deg, #1a0a0a, #0d0505);
+            border-radius: 10px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8), inset 0 0 30px rgba(139,0,0,0.1);
+        }
+        .fnaf-room .game { position: relative; z-index: 10; }
+        .fnaf-room .game::before {
+            content: '';
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(ellipse at center, rgba(20,5,5,0.9) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        /* Ambient horror effect */
+        .fnaf-ambient {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 3;
+            background: radial-gradient(ellipse at 50% 30%, transparent 30%, rgba(0,0,0,0.7) 100%);
+            animation: fnafBreathing 6s ease-in-out infinite;
+        }
+        .fnaf-room .coin-display {
+            z-index: 50;
+        }
+        .fnaf-room .game-header { z-index: 50; }
+        /* Hallway monitoring system */
+        .hallway-zone {
+            position: fixed;
+            top: 0;
+            height: 100%;
+            width: 140px;
+            z-index: 60;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .hallway-zone.left { left: 0; }
+        .hallway-zone.right { right: 0; }
+        .hallway-zone:hover {
+            background: rgba(139,0,0,0.1);
+        }
+        .hallway-zone.peeking {
+            background: rgba(139,0,0,0.2);
+        }
+        .hallway-door {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #000000, #0a0505);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.4s ease;
+        }
+        .hallway-zone.left .hallway-door { transform: perspective(500px) rotateY(0deg); }
+        .hallway-zone.right .hallway-door { transform: perspective(500px) rotateY(0deg); }
+        .hallway-zone.peeking.left .hallway-door { transform: perspective(500px) rotateY(-45deg); }
+        .hallway-zone.peeking.right .hallway-door { transform: perspective(500px) rotateY(45deg); }
+        .hallway-door::before {
+            content: '';
+            position: absolute;
+            inset: 15px;
+            border: 2px solid rgba(139,0,0,0.4);
+            border-radius: 4px;
+        }
+        .hallway-icon {
+            font-size: 2rem;
+            color: rgba(139,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+        .hallway-zone:hover .hallway-icon { color: rgba(255,0,0,0.8); }
+        .hallway-zone.peeking .hallway-icon { font-size: 2.5rem; color: #ff0000; }
+        /* Enemy in hallway */
+        .hallway-enemy {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 65;
+        }
+        .hallway-enemy.active {
+            opacity: 1;
+            animation: enemyFlicker 0.5s ease-in-out infinite;
+        }
+        .hallway-enemy.seen {
+            animation: enemyRetreat 0.5s ease-out forwards;
+        }
+        @keyframes enemyFlicker {
+            0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+        }
+        @keyframes enemyRetreat {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.5) translateX(50px); }
+        }
+        /* Hallway warning timer */
+        .hallway-timer {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: #ff4444;
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: 2px solid #8b0000;
+            z-index: 100;
+            display: none;
+        }
+        .hallway-timer.active { display: block; animation: timerPulse 0.5s ease-in-out infinite; }
+        @keyframes timerPulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(139,0,0,0.5); }
+            50% { box-shadow: 0 0 25px rgba(255,0,0,0.8); }
+        }
+        /* Check hallway prompt */
+        .check-prompt {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(139,0,0,0.8);
+            color: #fff;
+            padding: 8px 20px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            z-index: 100;
+            display: none;
+            animation: promptBounce 1s ease-in-out infinite;
+        }
+        .check-prompt.left { transform: translateX(-200px); }
+        .check-prompt.right { transform: translateX(100px); }
+        .check-prompt.active { display: block; }
+        @keyframes promptBounce {
+            0%, 100% { transform: translateX(-200px) translateY(0); }
+            50% { transform: translateX(-200px) translateY(-5px); }
+        }
+        .check-prompt.right { animation-name: promptBounceRight; }
+        @keyframes promptBounceRight {
+            0%, 100% { transform: translateX(100px) translateY(0); }
+            50% { transform: translateX(100px) translateY(-5px); }
+        }
+        .check-prompt.center {
+            left: 50%;
+            transform: translateX(-50%);
+            animation-name: promptBounceCenter;
+            z-index: 500 !important;
+            position: fixed !important;
+            top: 30% !important;
+        }
+        @keyframes promptBounceCenter {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-5px); }
+        }
+        .check-prompt.center {
+            background: linear-gradient(135deg, #8b0000, #cc0000) !important;
+            color: #fff !important;
+            font-size: 1.5rem !important;
+            padding: 25px 50px !important;
+            border-radius: 15px !important;
+            border: 4px solid #ff0000 !important;
+            box-shadow: 0 0 40px rgba(255,0,0,1) !important;
+            cursor: pointer;
+            animation: doorBtnPulse 0.5s ease-in-out infinite, promptBounceCenter 1s ease-in-out infinite;
+            z-index: 999 !important;
+            position: fixed !important;
+            top: 30% !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+        }
+        .check-prompt.center:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+        @keyframes menuGlitch {
+            0%, 100% { transform: translateX(0); filter: none; }
+            10% { transform: translateX(-5px); filter: hue-rotate(90deg); }
+            20% { transform: translateX(5px); filter: hue-rotate(180deg); }
+            30% { transform: translateX(-3px); filter: hue-rotate(270deg); }
+            40% { transform: translateX(3px); }
+            50% { transform: translateX(-2px); filter: hue-rotate(45deg); }
+            60% { transform: translateX(2px); }
+            70% { transform: translateX(-1px); filter: hue-rotate(135deg); }
+            80% { transform: translateX(1px); }
+            90% { transform: translateX(-1px); filter: none; }
+        }
+        @keyframes menuGlitchText {
+            0%, 100% { text-shadow: none; }
+            10% { text-shadow: 3px 0 0 #ff0000, -3px 0 0 #00ffff; }
+            20% { text-shadow: -3px 0 0 #ff0000, 3px 0 0 #00ffff; }
+            30% { text-shadow: 2px 0 0 #ff0000, -2px 0 0 #00ffff; }
+            40% { text-shadow: none; }
+            50% { text-shadow: -2px 0 0 #ff0000, 2px 0 0 #00ffff; }
+            60% { text-shadow: none; }
+            70% { text-shadow: 3px 0 0 #ff0000, -3px 0 0 #00ffff; }
+            80% { text-shadow: none; }
+            90% { text-shadow: 2px 0 0 #00ffff, -2px 0 0 #ff0000; }
+        }
+        .nightmare-glitch .menu h1 {
+            animation: menuGlitchText 0.5s ease-in-out infinite, float 3s ease-in-out infinite;
+        }
+        .nightmare-glitch .menu {
+            animation: menuGlitch 0.3s ease-in-out infinite;
+        }
+        .nightmare-glitch .menu::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(139,0,0,0.03) 2px,
+                rgba(139,0,0,0.03) 4px
+            );
+            pointer-events: none;
+            animation: scanlines 0.1s linear infinite;
+        }
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(4px); }
+        }
+        .nightmare-glitch .menu-btn[onclick*="startGameAI(4)"] {
+            animation: nightmareFlicker 0.5s ease-in-out infinite;
+        }
+        /* Secret Mode */
+        @keyframes secretPulse {
+            0%, 100% { background: linear-gradient(135deg, #1a0033, #330066); }
+            50% { background: linear-gradient(135deg, #330066, #6600cc); }
+        }
+        .secret-mode {
+            animation: secretPulse 2s ease-in-out infinite;
+        }
+        .secret-mode .board { box-shadow: 0 0 50px rgba(128,0,255,0.8), 0 0 100px rgba(128,0,255,0.4) !important; }
+        .secret-mode .game-header h2 {
+            color: #ff00ff !important;
+            text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff !important;
+        }
+        .secret-mode .sq.selected {
+            box-shadow: inset 0 0 0 4px #ff00ff, 0 0 20px rgba(255,0,255,0.8) !important;
+        }
+        .secret-mode .sq.valid::after {
+            background: rgba(255,0,255,0.6) !important;
+            box-shadow: 0 0 10px rgba(255,0,255,0.8) !important;
+        }
+        .secret-mode .coin-display {
+            background: linear-gradient(135deg, #6600cc, #330066) !important;
+            color: #ff00ff !important;
+        }
+        .secret-mode .menu h1 {
+            color: #ff00ff !important;
+            text-shadow: 0 0 20px #ff00ff !important;
+        }
+        @keyframes flashAnim {
+            0% { opacity: 0.8; }
+            100% { opacity: 0; }
+        }
+        .secret-mode .menu-btn[onclick*="startGameAI(4)"] {
+            background: linear-gradient(135deg, #6600cc, #330066) !important;
+            border-color: #ff00ff !important;
+        }
+        .secret-unlocked .menu h1::after {
+            content: ' ✨ SECRET ✨';
+            color: #ff00ff;
+            font-size: 1rem;
+        }
+        .secret-unlocked .menu h1::after {
+            content: ' ✨ SECRET ✨';
+            color: #ff00ff;
+            font-size: 1rem;
+        }
+        .nightmare-mode .overlay .btn:hover, .nightmare-mode .overlay .menu-btn:hover {
+            background: rgba(139,0,0,0.8) !important;
+            transform: scale(1.1);
+        }
         .ad-headline { font-size: 1.3rem; font-weight: bold; color: #fff; z-index: 1; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
         .ad-subhead { font-size: 0.8rem; color: rgba(255,255,255,0.8); margin-top: 4px; z-index: 1; }
         .ad-body { padding: 16px; }
@@ -509,6 +1018,7 @@
             <button class="menu-btn" style="padding: 12px 25px; font-size: 1.1rem; margin: 5px;" onclick="playSoundSafe('click');startGameAI(1)">Easy</button>
             <button class="menu-btn" style="padding: 12px 25px; font-size: 1.1rem; margin: 5px;" onclick="playSoundSafe('click');startGameAI(2)">Medium</button>
             <button class="menu-btn" style="padding: 12px 25px; font-size: 1.1rem; margin: 5px;" onclick="playSoundSafe('click');startGameAI(3)">Hard</button>
+            <button class="menu-btn" style="padding: 12px 25px; font-size: 1.1rem; margin: 5px; background: linear-gradient(135deg, #3d0000, #8b0000);" onclick="playSoundSafe('click');startGameAI(4)">Nightmare</button>
         </div>
     </div>
 
@@ -543,7 +1053,10 @@
         <div class="over-box">
             <h2 id="overTitle">Checkmate!</h2>
             <p id="overMsg">White wins!</p>
-            <button class="menu-btn" onclick="playSoundSafe('click');resetGame()">Play Again</button>
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <button class="menu-btn" onclick="playSoundSafe('click');resetGame()">Play Again</button>
+                <button class="menu-btn" onclick="playSoundSafe('click');backToMenuJumpscare()">Back to Menu</button>
+            </div>
         </div>
     </div>
 
@@ -590,6 +1103,13 @@
                             <span>Help keep the game free!</span>
                         </div>
                         <button class="earn-btn" style="background: linear-gradient(135deg, #00bcd4, #009688);" onclick="supportDeveloper()">Support</button>
+                    </div>
+                    <div class="earn-task" id="secretToggleContainer" style="display:none;">
+                        <div class="earn-task-info">
+                            <strong id="secretToggleTitle">✨ Secret Mode</strong>
+                            <span id="secretToggleStatus">Toggle the secret theme</span>
+                        </div>
+                        <button class="earn-btn" id="secretToggleBtn" style="background: linear-gradient(135deg, #6600cc, #330066);" onclick="toggleSecretMode()">ON</button>
                     </div>
                 </div>
             </div>
@@ -874,6 +1394,12 @@
 
         function init() {
             loadData();
+            // Check for secret mode
+            if (localStorage.getItem('chessSecretMode') === 'true') {
+                secretModeUnlocked = true;
+                document.body.classList.add('secret-mode');
+            }
+            updateSecretToggleBtn();
             console.log('%c🔧 Dev Mode', 'font-size:16px;font-weight:bold', '- To enable Dev Mode, open console (F12) and run: enableDevMode()');
             updateStatsDisplay();
             const br = ['r','n','b','q','k','b','n','r'];
@@ -889,6 +1415,33 @@
                 }
             }
         }
+
+        function toggleSecretMode() {
+            secretModeUnlocked = !secretModeUnlocked;
+            if (secretModeUnlocked) {
+                localStorage.setItem('chessSecretMode', 'true');
+                document.body.classList.add('secret-mode');
+                console.log('%c🔮 Secret Mode ON', 'color:#ff00ff;font-weight:bold');
+            } else {
+                localStorage.removeItem('chessSecretMode');
+                document.body.classList.remove('secret-mode');
+                console.log('%c🔮 Secret Mode OFF', 'color:#888;font-weight:bold');
+            }
+            updateSecretToggleBtn();
+        }
+        
+        function updateSecretToggleBtn() {
+            const container = document.getElementById('secretToggleContainer');
+            const btn = document.getElementById('secretToggleBtn');
+            if (container && btn) {
+                container.style.display = 'flex';
+                btn.textContent = secretModeUnlocked ? 'ON' : 'OFF';
+                btn.style.background = secretModeUnlocked 
+                    ? 'linear-gradient(135deg, #6600cc, #330066)' 
+                    : 'linear-gradient(135deg, #555, #333)';
+            }
+        }
+        console.log('%c🔮 Secret Mode Tip', 'color:#ff00ff;font-weight:bold', '- Run toggleSecretMode() to toggle secret mode on/off');
 
         function loadData() {
             const saved = localStorage.getItem('chessShop');
@@ -1573,15 +2126,17 @@
 
             if (mate()) {
                 over = true;
-                addCoins(25);
                 playSoundSafe('mate');
                 const winner = turn === 'white' ? 'Black' : 'White';
-                recordWin(winner);
+                if (gameMode !== 'pvp') {
+                    addCoins(25);
+                    recordWin(winner);
+                }
                 showOver(winner, 'CHECKMATE!');
             } else if (stalemate()) {
                 over = true;
-                addCoins(5);
                 playSoundSafe('mate');
+                if (gameMode !== 'pvp') addCoins(5);
                 showOver('Neither', 'STALEMATE - Draw!');
             } else {
                 render();
@@ -1620,7 +2175,28 @@
                     const pc = pieces[Math.floor(Math.random() * pieces.length)];
                     aiMoveChoice = { from: [pc.r, pc.c], to: pc.moves[Math.floor(Math.random() * pc.moves.length)] };
                 }
+            } else if (aiLevel === 3) {
+                let bestScore = -1000;
+                const candidates = [];
+                for (const pc of pieces) {
+                    for (const m of pc.moves) {
+                        let score = 0;
+                        const cap = board[m[0]][m[1]];
+                        if (cap) score = 10;
+                        if (m[0] === 7 || m[0] === 0) score += 3;
+                        if (Math.random() < 0.3) score += Math.random() * 2;
+                        if (score > bestScore) {
+                            bestScore = score;
+                            candidates.length = 0;
+                            candidates.push({ from: [pc.r, pc.c], to: m });
+                        } else if (score === bestScore) {
+                            candidates.push({ from: [pc.r, pc.c], to: m });
+                        }
+                    }
+                }
+                aiMoveChoice = candidates[Math.floor(Math.random() * candidates.length)];
             } else {
+                // Nightmare mode (aiLevel 4) - same as hard but with nightmare visuals
                 let bestScore = -1000;
                 const candidates = [];
                 for (const pc of pieces) {
@@ -1642,7 +2218,9 @@
                 aiMoveChoice = candidates[Math.floor(Math.random() * candidates.length)];
             }
 
-            move(aiMoveChoice.from[0], aiMoveChoice.from[1], aiMoveChoice.to[0], aiMoveChoice.to[1]);
+            if (aiMoveChoice) {
+                move(aiMoveChoice.from[0], aiMoveChoice.from[1], aiMoveChoice.to[0], aiMoveChoice.to[1]);
+            }
         }
 
         function mate() {
@@ -1659,10 +2237,289 @@
             return mate();
         }
 
+        function triggerJumpscare() {
+            // Screen flash
+            const flash = document.createElement('div');
+            flash.className = 'jumpscare-flash';
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 450);
+            
+            // Screen shake
+            document.body.classList.add('jumpscare-shake');
+            setTimeout(() => document.body.classList.remove('jumpscare-shake'), 450);
+            
+            // Scary text
+            const texts = ['YOU DIED', 'GAME OVER', 'NIGHTMARE', 'GOT YOU', 'BOO!', 'CREEPY'];
+            const textEl = document.createElement('div');
+            textEl.className = 'jumpscare-text';
+            textEl.textContent = texts[Math.floor(Math.random() * texts.length)];
+            document.body.appendChild(textEl);
+            setTimeout(() => textEl.remove(), 550);
+            
+            // The jumpscare emoji
+            const symbols = ['💀', '👻', '🎃', '😱', '👹', '☠️', '🤡', '👺'];
+            const jumpscareEl = document.createElement('div');
+            jumpscareEl.className = 'jumpscare';
+            jumpscareEl.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+            document.body.appendChild(jumpscareEl);
+            setTimeout(() => jumpscareEl.remove(), 550);
+        }
+
+        function backToMenuJumpscare() {
+            if (aiLevel === 4 && !over) {
+                setTimeout(triggerJumpscare, 100);
+                setTimeout(() => backToMenu(), 700);
+            } else {
+                backToMenu();
+            }
+        }
+
+        let hallwayActive = false;
+        let hallwayTimer = 0;
+        let hallwayInterval = null;
+        let currentThreat = null;
+        let threatSides = { left: false, right: false };
+        let secretModeUnlocked = false;
+        
+        function unlockSecretMode() {
+            secretModeUnlocked = true;
+            localStorage.setItem('chessSecretMode', 'true');
+            document.body.classList.add('secret-mode');
+            // Play the cutscene
+            playSecretCutscene();
+        }
+        
+        function playSecretCutscene() {
+            // Create cinematic overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'cutscene-overlay';
+            overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s;';
+            document.body.appendChild(overlay);
+            
+            // Add pulsing ambient effect to overlay
+            overlay.style.animation = 'secretPulse 2s ease-in-out infinite';
+            
+            // Cutscene scenes
+            const scenes = [
+                { text: 'You failed to check the door...', color: '#8b0000', delay: 0 },
+                { text: 'The nightmare consumed you.', color: '#660000', delay: 1500 },
+                { text: 'But something strange happened...', color: '#330066', delay: 3000 },
+                { text: 'The darkness... revealed a secret.', color: '#ff00ff', delay: 4500 },
+                { text: 'A path you were never meant to see.', color: '#cc00cc', delay: 6000 },
+                { text: '🔓 SECRET MODE UNLOCKED 🔓', color: '#ff00ff', delay: 7500, big: true }
+            ];
+            
+            scenes.forEach(scene => {
+                setTimeout(() => {
+                    const textEl = document.createElement('div');
+                    textEl.style.cssText = `color:${scene.color};font-size:${scene.big ? '3rem' : '1.8rem'};font-weight:bold;text-shadow:0 0 20px ${scene.color};opacity:0;transition:opacity 0.5s;margin:15px;`;
+                    textEl.textContent = scene.text;
+                    overlay.appendChild(textEl);
+                    setTimeout(() => textEl.style.opacity = '1', 50);
+                    
+                    // Glitch effect on text
+                    if (scene.big) {
+                        setTimeout(() => {
+                            textEl.style.animation = 'menuGlitchText 0.2s ease-in-out infinite';
+                        }, 500);
+                    }
+                }, scene.delay);
+            });
+            
+            // Flash effects during cutscene
+            setTimeout(() => {
+                // Red flash
+                const flash1 = document.createElement('div');
+                flash1.style.cssText = 'position:fixed;inset:0;background:#8b0000;opacity:0;z-index:10001;animation:flashAnim 0.3s;';
+                document.body.appendChild(flash1);
+                setTimeout(() => flash1.remove(), 300);
+            }, 1500);
+            
+            setTimeout(() => {
+                // Purple flash
+                const flash2 = document.createElement('div');
+                flash2.style.cssText = 'position:fixed;inset:0;background:#330066;opacity:0;z-index:10001;animation:flashAnim 0.5s;';
+                document.body.appendChild(flash2);
+                setTimeout(() => flash2.remove(), 500);
+            }, 4500);
+            
+            // End cutscene
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.remove();
+                    document.body.classList.add('secret-mode');
+                    // Show permanent secret mode indicator
+                    showSecretModeIndicator();
+                }, 500);
+            }, 9500);
+        }
+        
+        function showSecretModeIndicator() {
+            const indicator = document.createElement('div');
+            indicator.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#1a0033,#330066);padding:40px 60px;border-radius:20px;border:4px solid #ff00ff;z-index:10000;text-align:center;box-shadow:0 0 50px rgba(255,0,255,0.8);';
+            indicator.innerHTML = '<h2 style="color:#ff00ff;font-size:2.5rem;margin-bottom:15px;text-shadow:0 0 20px #ff00ff;">🔓 SECRET MODE</h2><p style="color:#fff;font-size:1.2rem;">You unlocked the hidden experience</p>';
+            document.body.appendChild(indicator);
+            setTimeout(() => {
+                indicator.style.transition = 'opacity 0.5s';
+                indicator.style.opacity = '0';
+                setTimeout(() => indicator.remove(), 500);
+            }, 3000);
+        }
+        
+        function initHallwaySystem() {
+            hallwayActive = true;
+            hallwayTimer = 0;
+            threatSides = { left: false, right: false };
+            
+            // Randomly spawn threats
+            hallwayInterval = setInterval(() => {
+                if (!hallwayActive || over) return;
+                
+                // Don't spawn if already a threat active
+                if (threatSides.left || threatSides.right) return;
+                
+                // Random chance to spawn threat
+                if (Math.random() < 0.15) {
+                    const side = Math.random() < 0.5 ? 'left' : 'right';
+                    spawnThreat(side);
+                }
+            }, 3000);
+        }
+        
+        function spawnThreat(side) {
+            const enemy = document.getElementById(side === 'left' ? 'enemyLeft' : 'enemyRight');
+            const prompt = document.getElementById('promptCenter');
+            const hallZone = document.getElementById(side === 'left' ? 'hallLeft' : 'hallRight');
+            
+            threatSides[side] = true;
+            if (enemy) enemy.classList.add('active');
+            if (prompt) {
+                prompt.textContent = `🚪 CHECK BOTH DOORS - CLICK HERE!`;
+                prompt.classList.add('active');
+            }
+            if (hallZone) hallZone.classList.add('peeking');
+            
+            // Animate the door
+            if (hallZone) {
+                const door = hallZone.querySelector('.hallway-door');
+                if (door) {
+                    door.style.transition = 'transform 0.4s ease-out';
+                    door.style.transform = side === 'left' ? 'perspective(500px) rotateY(-45deg)' : 'perspective(500px) rotateY(45deg)';
+                }
+            }
+            
+            // Set timer for player to check
+            hallwayTimer = 5;
+            const timerInterval = setInterval(() => {
+                if (!threatSides[side]) {
+                    clearInterval(timerInterval);
+                    return;
+                }
+                hallwayTimer--;
+                updateHallwayTimer();
+                if (hallwayTimer <= 0) {
+                    clearInterval(timerInterval);
+                    // Auto jumpscare if player didn't check in time
+                    if (threatSides[side] && !over) {
+                        if (aiLevel === 4 && gameMode === 'ai') {
+                            unlockSecretMode();
+                        }
+                        triggerJumpscare();
+                        threatSides[side] = false;
+                    }
+                }
+            }, 1000);
+            updateHallwayTimer();
+        }
+        
+        function checkDoorAny() {
+            if (!threatSides.left && !threatSides.right) return;
+            
+            const side = threatSides.left ? 'left' : 'right';
+            threatSides.left = false;
+            threatSides.right = false;
+            
+            const prompt = document.getElementById('promptCenter');
+            const hallLeft = document.getElementById('hallLeft');
+            const hallRight = document.getElementById('hallRight');
+            
+            // Close both doors
+            [hallLeft, hallRight].forEach(hallZone => {
+                if (hallZone) {
+                    hallZone.classList.remove('peeking');
+                    const door = hallZone.querySelector('.hallway-door');
+                    if (door) {
+                        setTimeout(() => {
+                            door.style.transform = 'perspective(500px) rotateY(0deg)';
+                        }, 200);
+                    }
+                }
+            });
+            
+            // Hide enemies
+            document.getElementById('enemyLeft')?.classList.remove('active');
+            document.getElementById('enemyRight')?.classList.remove('active');
+            
+            if (prompt) prompt.classList.remove('active');
+        }
+        
+        function updateHallwayTimer() {
+            const timerEl = document.getElementById('hallTimer');
+            if (!timerEl) return;
+            
+            const activeThreat = threatSides.left || threatSides.right;
+            if (activeThreat) {
+                timerEl.classList.add('active');
+                timerEl.textContent = `⚠️ Check the doors! ${hallwayTimer}s`;
+                hallwayTimer--;
+            } else {
+                timerEl.classList.remove('active');
+            }
+        }
+        
+        function stopHallwaySystem() {
+            hallwayActive = false;
+            if (hallwayInterval) clearInterval(hallwayInterval);
+            threatSides = { left: false, right: false };
+            hallwayTimer = 0;
+        }
+        
+        function backToMenu() {
+            stopHallwaySystem();
+            document.body.classList.remove('nightmare-mode');
+            document.body.classList.remove('fnaf-room');
+            document.querySelectorAll('.fnaf-room, .fnaf-wall-left, .fnaf-wall-right, .fnaf-floor, .fnaf-ambient, .nightmare-overlay').forEach(el => el.remove());
+            document.getElementById('menu').classList.remove('hidden');
+            document.getElementById('game').classList.remove('active');
+            document.getElementById('over').classList.remove('active');
+            document.getElementById('shopOverlay').classList.remove('active');
+            aiLevel = 0;
+            over = false;
+            // Keep secret mode if unlocked
+            if (secretModeUnlocked || localStorage.getItem('chessSecretMode') === 'true') {
+                document.body.classList.add('secret-mode');
+            }
+        }
+
         function showOver(winner, msg) {
             document.getElementById('overTitle').textContent = msg;
-            document.getElementById('overMsg').textContent = `${winner} wins! +25 🪙`;
+            let rewardText = '';
+            const playerLost = winner === 'Black' || winner === 'Neither';
+            const inNightmare = aiLevel === 4;
+            if (gameMode !== 'pvp') {
+                rewardText = ' +25 🪙';
+                if (aiLevel === 4) rewardText += ' 💀';
+            }
+            document.getElementById('overMsg').textContent = `${winner} wins!${rewardText}`;
             document.getElementById('over').classList.add('active');
+            // Jumpscare if player lost in nightmare mode
+            if (inNightmare && playerLost) {
+                setTimeout(triggerJumpscare, 300);
+            }
+            // Clean up FNAF room on game over
+            stopHallwaySystem();
+            document.querySelectorAll('.fnaf-room, .fnaf-wall-left, .fnaf-wall-right, .fnaf-floor, .fnaf-ambient').forEach(el => el.remove());
             render();
         }
 
@@ -1670,11 +2527,19 @@
             if (!over) {
                 over = true;
                 const winner = turn === 'white' ? 'Black' : 'White';
-                addCoins(turn === 'white' ? 0 : 25);
-                recordWin(winner);
+                // Only give rewards in AI mode
+                if (gameMode !== 'pvp') {
+                    addCoins(winner === 'White' ? 25 : 0);
+                    recordWin(winner);
+                }
                 document.getElementById('overTitle').textContent = 'RESIGNED';
-                document.getElementById('overMsg').textContent = `${winner} wins! ${winner === 'White' ? '+25 🪙' : ''}`;
+                document.getElementById('overMsg').textContent = `${winner} wins!`;
                 document.getElementById('over').classList.add('active');
+                // Jumpscare if player lost in nightmare mode
+                if (aiLevel === 4 && winner === 'Black') {
+                    setTimeout(triggerJumpscare, 300);
+                }
+                stopHallwaySystem();
             }
         }
 
@@ -1703,12 +2568,51 @@
             document.getElementById('menu').classList.add('hidden');
             document.getElementById('game').classList.add('active');
             gameMode = isAI ? 'ai' : 'pvp';
+            // Clean up any previous room or nightmare elements
+            document.body.classList.remove('nightmare-mode');
+            document.body.classList.remove('fnaf-room');
+            document.querySelectorAll('.fnaf-room, .fnaf-wall-left, .fnaf-wall-right, .fnaf-floor, .fnaf-ambient, .nightmare-overlay').forEach(el => el.remove());
+            
+            // Check for secret mode
+            if (secretModeUnlocked || localStorage.getItem('chessSecretMode') === 'true') {
+                document.body.classList.add('secret-mode');
+                secretModeUnlocked = true;
+            }
+            
+            if (isAI && aiLevel === 4) {
+                document.body.classList.add('nightmare-mode');
+                // Create FNAF 4 style room with hallway monitoring
+                const room = document.createElement('div');
+                room.className = 'fnaf-room';
+                room.id = 'fnafRoom';
+                room.innerHTML = `
+                    <div class="fnaf-wall-left"><div class="fnaf-door"><div class="fnaf-door-handle"></div></div></div>
+                    <div class="fnaf-wall-right"><div class="fnaf-door"><div class="fnaf-door-handle"></div></div></div>
+                    <div class="fnaf-ambient"></div>
+                    <div class="hallway-timer" id="hallTimer">Time Left: 3s</div>
+                    <div class="check-prompt center" id="promptCenter" onclick="checkDoorAny()">🚪 CHECK BOTH DOORS - CLICK HERE!</div>
+                `;
+                document.body.appendChild(room);
+                initHallwaySystem();
+            } else {
+                document.body.classList.remove('nightmare-mode');
+                document.body.classList.remove('fnaf-room');
+            }
             resetGame();
         }
 
         function startGameAI(level) {
             aiLevel = level;
-            startGame(true);
+            // Add glitch effect to menu when selecting Nightmare
+            if (level === 4) {
+                document.body.classList.add('nightmare-glitch');
+                setTimeout(() => {
+                    document.body.classList.remove('nightmare-glitch');
+                    startGame(true);
+                }, 1500);
+            } else {
+                startGame(true);
+            }
         }
 
         init();
