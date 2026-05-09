@@ -21,7 +21,7 @@
 
         .menu { text-align: center; }
         .menu.hidden { display: none; }
-        .menu h1 { font-size: 4rem; margin-bottom: 10px; }
+        .menu h1 { font-size: 4rem; margin-bottom: 10px; animation: float 3s ease-in-out infinite; }
         .menu p { font-size: 1.2rem; color: #aaa; margin-bottom: 40px; }
         .menu-btn {
             padding: 20px 50px;
@@ -80,16 +80,13 @@
             font-size: 46px;
             cursor: pointer;
             position: relative;
+            transition: transform 0.15s ease, filter 0.15s ease;
         }
-
-        .sq:hover { filter: brightness(1.15); }
-
-        .light { background: #f0d9b5; }
-        .dark { background: #b58863; }
-
-        .pc { user-select: none; color: #fff; text-shadow: 0 1px 3px #000; }
-
-        .sq.selected { box-shadow: inset 0 0 0 4px #00ff88; }
+        .sq:hover { filter: brightness(1.15); transform: scale(1.02); }
+        .sq.selected { box-shadow: inset 0 0 0 4px #00ff88; animation: pulse 1s ease-in-out infinite; }
+        .pc { user-select: none; color: #fff; text-shadow: 0 1px 3px #000; transition: transform 0.1s ease; }
+        .pc.pop { animation: pop 0.2s ease-out; }
+        .pc.moving { animation: slidePiece 0.25s ease-out; }
 
         .sq.valid::after {
             content: '';
@@ -147,22 +144,70 @@
 
         .btn:hover { background: rgba(255,255,255,0.25); transform: translateY(-2px); }
 
-        .coin-display {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, #ffd700, #ffaa00);
-            color: #000;
-            padding: 10px 20px;
-            border-radius: 25px;
-            font-weight: bold;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(255,170,0,0.4);
-            cursor: pointer;
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        @keyframes coinBounce {
+            0%, 100% { transform: translateY(0); }
+            25% { transform: translateY(-3px); }
+            50% { transform: translateY(0); }
+            75% { transform: translateY(-3px); }
+        }
+        @keyframes slidePiece {
+            0% { transform: scale(0.7) translateY(-10px); opacity: 0.5; }
+            40% { transform: scale(1.2) translateY(0); opacity: 1; }
+            70% { transform: scale(0.95); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pc.moving { animation: slidePiece 0.3s ease-out forwards; }
+        
+        @keyframes ghostSlide {
+            0% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .ghost-piece {
+            position: fixed;
+            font-size: 46px;
+            z-index: 500;
+            pointer-events: none;
+            transition: left 0.25s ease-out, top 0.25s ease-out;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+        }
+        .ghost-piece.snap { animation: ghostSlide 0.15s ease-out; }
+        
+        .coin-display { 
+            position: fixed; top: 20px; right: 20px; 
+            background: linear-gradient(135deg, #ffd700, #ffaa00); 
+            color: #000; padding: 10px 20px; border-radius: 25px; 
+            font-weight: bold; font-size: 1.1rem; 
+            display: flex; align-items: center; gap: 8px; 
+            box-shadow: 0 4px 15px rgba(255,170,0,0.4); 
+            cursor: pointer;
+            animation: coinBounce 2s ease-in-out infinite;
+            transition: transform 0.2s ease;
+        }
+        @keyframes coinPop {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.3); }
+            50% { transform: scale(0.9); }
+            75% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+        .coin-display.earned { animation: coinPop 0.4s ease-out; }
 
         .coin-display:hover { transform: scale(1.05); }
         .coin-display span:last-child { margin-left: 4px; }
@@ -184,6 +229,7 @@
             padding: 50px;
             border-radius: 20px;
             text-align: center;
+            animation: pop 0.3s ease-out;
         }
 
         .over-box h2 { font-size: 2.5rem; margin-bottom: 15px; }
@@ -267,8 +313,9 @@
             padding: 15px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             border: 3px solid transparent;
+            animation: pop 0.3s ease-out;
         }
 
         .skin-card:hover { background: rgba(255,255,255,0.15); transform: translateY(-3px); }
@@ -536,6 +583,13 @@
                             <span>Complete any match</span>
                         </div>
                         <span style="color: #ffd700;">+5 🪙</span>
+                    </div>
+                    <div class="earn-task">
+                        <div class="earn-task-info">
+                            <strong>☕ Support Developer</strong>
+                            <span>Help keep the game free!</span>
+                        </div>
+                        <button class="earn-btn" style="background: linear-gradient(135deg, #00bcd4, #009688);" onclick="supportDeveloper()">Support</button>
                     </div>
                 </div>
             </div>
@@ -874,7 +928,16 @@
             coins += amount;
             updateCoinDisplay();
             saveData();
-            if (amount > 0) playSoundSafe('coin');
+            if (amount > 0) {
+                playSoundSafe('coin');
+                const coinEl = document.querySelector('.coin-display');
+                if (coinEl) {
+                    coinEl.classList.remove('earned');
+                    void coinEl.offsetWidth;
+                    coinEl.classList.add('earned');
+                    setTimeout(() => coinEl.classList.remove('earned'), 400);
+                }
+            }
         }
 
         function recordWin(winner) {
@@ -894,6 +957,10 @@
             return JSON.parse(localStorage.getItem('chessStats') || '{"wins":0,"losses":0,"games":0,"elo":1000}');
         }
 
+        function supportDeveloper() {
+            window.open('https://ko-fi.com/yourusername', '_blank');
+        }
+        
         function updateStatsDisplay() {
             const stats = getStats();
             const eloEl = document.getElementById('eloDisplay');
@@ -1407,8 +1474,46 @@
             if (sel) {
                 if (moves.some(m => m[0] === r && m[1] === c)) {
                     const isCapture = board[r][c] !== null;
-                    move(sel[0], sel[1], r, c);
-                    playSoundSafe(isCapture ? 'capture' : 'move');
+                    const fromSel = sel;
+                    const piece = board[sel[0]][sel[1]];
+                    // Remove piece immediately from board visually
+                    const sourceEl = document.querySelector(`[data-r="${sel[0]}"][data-c="${sel[1]}"] .pc`);
+                    const pieceSymbol = sourceEl ? sourceEl.textContent : '';
+                    const pieceColor = piece === piece.toUpperCase() ? '#fff' : '#111';
+                    const fromSquare = document.querySelector(`[data-r="${sel[0]}"][data-c="${sel[1]}"]`);
+                    const toSquare = document.querySelector(`[data-r="${r}"][data-c="${c}"]`);
+                    if (fromSquare && toSquare) {
+                        const fromRect = fromSquare.getBoundingClientRect();
+                        const toRect = toSquare.getBoundingClientRect();
+                        // Create ghost piece that slides
+                        const ghost = document.createElement('div');
+                        ghost.className = 'ghost-piece';
+                        ghost.textContent = pieceSymbol;
+                        ghost.style.color = pieceColor;
+                        ghost.style.left = fromRect.left + 'px';
+                        ghost.style.top = fromRect.top + 'px';
+                        ghost.style.width = fromRect.width + 'px';
+                        ghost.style.height = fromRect.height + 'px';
+                        ghost.style.display = 'flex';
+                        ghost.style.alignItems = 'center';
+                        ghost.style.justifyContent = 'center';
+                        document.body.appendChild(ghost);
+                        // Hide original
+                        if (sourceEl) sourceEl.style.visibility = 'hidden';
+                        // Animate ghost to target
+                        requestAnimationFrame(() => {
+                            ghost.style.left = toRect.left + 'px';
+                            ghost.style.top = toRect.top + 'px';
+                        });
+                        setTimeout(() => {
+                            ghost.remove();
+                            if (sourceEl) sourceEl.style.visibility = '';
+                        }, 280);
+                    }
+                    setTimeout(() => {
+                        move(fromSel[0], fromSel[1], r, c);
+                        playSoundSafe(isCapture ? 'capture' : 'move');
+                    }, 100);
                     sel = null;
                     moves = [];
                     return;
@@ -1442,6 +1547,24 @@
 
             board[tr][tc] = p;
             board[fr][fc] = null;
+
+            // Animate the source square (piece leaving)
+            const sourceSquare = document.querySelector(`[data-r="${fr}"][data-c="${fc}"] .pc`);
+            if (sourceSquare) {
+                sourceSquare.style.transition = 'transform 0.15s ease-in';
+                sourceSquare.style.transform = 'scale(0.5)';
+            }
+            
+            // Animate the target square (piece arriving)
+            const targetSquare = document.querySelector(`[data-r="${tr}"][data-c="${tc}"] .pc`);
+            if (targetSquare) {
+                targetSquare.classList.remove('moving', 'pop');
+                void targetSquare.offsetWidth;
+                targetSquare.style.transform = 'scale(0.5)';
+                targetSquare.classList.add('moving');
+                targetSquare.style.transform = '';
+                setTimeout(() => targetSquare.classList.remove('moving'), 300);
+            }
 
             if (p.toLowerCase() === 'p' && (tr === 0 || tr === 7))
                 board[tr][tc] = turn === 'white' ? 'Q' : 'q';
