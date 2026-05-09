@@ -951,6 +951,39 @@
             0% { opacity: 0.8; }
             100% { opacity: 0; }
         }
+        @keyframes flashLightning {
+            0% { opacity: 0.9; }
+            50% { opacity: 0.3; }
+            100% { opacity: 0; }
+        }
+        @keyframes cloudMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 200px 0; }
+        }
+        @keyframes memoryFlicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.97; }
+        }
+        @keyframes grainShift {
+            0% { transform: translate(0, 0); }
+            20% { transform: translate(-2px, 1px); }
+            40% { transform: translate(1px, -2px); }
+            60% { transform: translate(-1px, 2px); }
+            80% { transform: translate(2px, -1px); }
+            100% { transform: translate(0, 0); }
+        }
+        @keyframes lightningBolt {
+            0% { opacity: 0; transform: scaleY(0) translateX(-50%); }
+            20% { opacity: 1; transform: scaleY(1) translateX(-50%); }
+            40% { opacity: 0.5; transform: scaleY(1.2) translateX(-30%); }
+            60% { opacity: 1; transform: scaleY(1) translateX(-60%); }
+            80% { opacity: 0.3; transform: scaleY(0.8) translateX(-40%); }
+            100% { opacity: 0; transform: scaleY(0) translateX(-50%); }
+        }
+        @keyframes lightGrow {
+            0% { opacity: 0; transform: translateX(-50%) scale(0); }
+            100% { opacity: 1; transform: translateX(-50%) scale(1); }
+        }
         .secret-mode .menu-btn[onclick*="startGameAI(4)"] {
             background: linear-gradient(135deg, #6600cc, #330066) !important;
             border-color: #ff00ff !important;
@@ -1398,6 +1431,9 @@
             if (localStorage.getItem('chessSecretMode') === 'true') {
                 secretModeUnlocked = true;
                 document.body.classList.add('secret-mode');
+            }
+            if (localStorage.getItem('chessSecretOneMoreGame') === 'true') {
+                secretOneMoreGame = true;
             }
             updateSecretToggleBtn();
             console.log('%c🔧 Dev Mode', 'font-size:16px;font-weight:bold', '- To enable Dev Mode, open console (F12) and run: enableDevMode()');
@@ -2280,6 +2316,8 @@
         let currentThreat = null;
         let threatSides = { left: false, right: false };
         let secretModeUnlocked = false;
+        let secretEndingUnlocked = false;
+        let secretOneMoreGame = false;
         
         function unlockSecretMode() {
             secretModeUnlocked = true;
@@ -2290,81 +2328,294 @@
         }
         
         function playSecretCutscene() {
-            // Create cinematic overlay
+            // Create cinematic overlay - styled like a memory/flashback
             const overlay = document.createElement('div');
             overlay.id = 'cutscene-overlay';
-            overlay.style.cssText = 'position:fixed;inset:0;background:#000;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s;';
+            overlay.style.cssText = 'position:fixed;inset:0;background:#0a0a15;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s;overflow:hidden;';
             document.body.appendChild(overlay);
             
-            // Add pulsing ambient effect to overlay
-            overlay.style.animation = 'secretPulse 2s ease-in-out infinite';
+            // Memory/VHS effect overlay
+            overlay.innerHTML = `
+                <div style="position:absolute;inset:0;background:linear-gradient(180deg,#1a1020 0%,#2a1a30 40%,#1a1020 100%);"></div>
+                <div style="position:absolute;inset:0;background:radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.8) 100%);"></div>
+                <div style="position:absolute;inset:0;background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);opacity:0.3;"></div>
+                <div style="position:absolute;inset:0;background:rgba(50,30,80,0.2);animation:memoryFlicker 0.1s infinite;"></div>
+            `;
             
-            // Cutscene scenes
+            // Memory label
+            const memoryLabel = document.createElement('div');
+            memoryLabel.style.cssText = 'position:absolute;top:20px;left:20px;color:rgba(150,100,180,0.7);font-size:0.9rem;font-style:italic;z-index:30;font-family:Georgia,serif;';
+            memoryLabel.textContent = '~ memory ~';
+            overlay.appendChild(memoryLabel);
+            
+            // Old film grain effect
+            const grain = document.createElement('div');
+            grain.style.cssText = 'position:absolute;inset:0;opacity:0.15;background-image:url("data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noise%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%224%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noise)%22/%3E%3C/svg%3E");animation:grainShift 0.5s steps(5) infinite;z-index:25;';
+            overlay.appendChild(grain);
+            
+            // Cutscene scenes - like remembering the past
             const scenes = [
-                { text: 'You failed to check the door...', color: '#8b0000', delay: 0 },
-                { text: 'The nightmare consumed you.', color: '#660000', delay: 1500 },
-                { text: 'But something strange happened...', color: '#330066', delay: 3000 },
-                { text: 'The darkness... revealed a secret.', color: '#ff00ff', delay: 4500 },
-                { text: 'A path you were never meant to see.', color: '#cc00cc', delay: 6000 },
-                { text: '🔓 SECRET MODE UNLOCKED 🔓', color: '#ff00ff', delay: 7500, big: true }
+                { text: 'You remember...', color: '#9988bb', delay: 500, y: 35 },
+                { text: 'Escaping the nightmare...', color: '#aa99cc', delay: 1500, y: 40 },
+                { text: 'That plane...', emoji: '✈️', color: '#ccbbdd', delay: 2800, y: 45 },
+                { text: 'Looking back one last time...', color: '#bbaacc', delay: 4000, y: 50 },
+                { text: 'Seeing the chess board below...', emoji: '♟️', color: '#ffd700', delay: 5500, y: 55 },
+                { text: 'A battlefield of memories...', color: '#ddaa88', delay: 7000, y: 60 },
+                { text: 'Then... ⚡', color: '#ffff88', delay: 8500, y: 65 },
+                { text: 'The lightning came...', color: '#ffcc44', delay: 9500, y: 70 },
+                { text: 'Everything went dark.', color: '#666688', delay: 10500, y: 75 },
+                { text: 'But somehow... you survived.', color: '#aaaacc', delay: 11500, y: 80 },
+                { text: '🔓 SECRET MODE UNLOCKED 🔓', color: '#ff00ff', delay: 13000, y: 85, big: true }
             ];
             
+            // Plane that flies in memory
+            const plane = document.createElement('div');
+            plane.id = 'cutscene-plane';
+            plane.style.cssText = 'position:absolute;font-size:2.5rem;transition:all 2s ease-out;left:-80px;top:45%;z-index:15;opacity:0.7;filter:sepia(0.3) brightness(0.9);';
+            plane.textContent = '✈️';
+            overlay.appendChild(plane);
+            
+            // Plane enters memory
+            setTimeout(() => {
+                plane.style.left = '20%';
+                plane.style.opacity = '0.8';
+            }, 2000);
+            
+            // Plane turns and looks back
+            setTimeout(() => {
+                plane.style.transform = 'scaleX(-1)';
+            }, 4000);
+            
+            // Lightning strikes
+            setTimeout(() => {
+                const bolt = document.createElement('div');
+                bolt.style.cssText = 'position:absolute;top:0;left:40%;width:20px;height:60%;background:linear-gradient(180deg,#ffff00,#ff8800);z-index:20;opacity:0;animation:lightningBolt 0.3s ease-out forwards;transform:rotate(15deg);';
+                overlay.appendChild(bolt);
+                const flash = document.createElement('div');
+                flash.style.cssText = 'position:fixed;inset:0;background:rgba(255,220,100,0.6);z-index:10001;animation:flashAnim 0.4s ease-out forwards;';
+                document.body.appendChild(flash);
+                setTimeout(() => flash.remove(), 400);
+                plane.textContent = '🔥💥';
+                plane.style.filter = 'sepia(0.8) brightness(0.6)';
+            }, 8500);
+            
+            // Plane falls
+            setTimeout(() => {
+                plane.style.transition = 'all 2.5s ease-in';
+                plane.style.left = '60%';
+                plane.style.top = '85%';
+                plane.style.transform = 'scaleX(-1) rotate(30deg)';
+                plane.style.opacity = '0.4';
+            }, 9500);
+            
+            // Scenes appear - each feels like remembering
             scenes.forEach(scene => {
                 setTimeout(() => {
                     const textEl = document.createElement('div');
-                    textEl.style.cssText = `color:${scene.color};font-size:${scene.big ? '3rem' : '1.8rem'};font-weight:bold;text-shadow:0 0 20px ${scene.color};opacity:0;transition:opacity 0.5s;margin:15px;`;
+                    const size = scene.big ? '2.2rem' : '1.5rem';
+                    textEl.style.cssText = `color:${scene.color};font-size:${size};font-weight:bold;text-shadow:0 0 15px ${scene.color}, 0 0 30px ${scene.color}40;font-family:Georgia,serif;font-style:italic;opacity:0;transition:opacity 0.8s;position:absolute;left:50%;transform:translateX(-50%);top:${scene.y}%;z-index:30;text-align:center;`;
                     textEl.textContent = scene.text;
                     overlay.appendChild(textEl);
                     setTimeout(() => textEl.style.opacity = '1', 50);
                     
-                    // Glitch effect on text
+                    // Glitch for final text
                     if (scene.big) {
                         setTimeout(() => {
-                            textEl.style.animation = 'menuGlitchText 0.2s ease-in-out infinite';
-                        }, 500);
+                            textEl.style.animation = 'menuGlitchText 0.3s ease-in-out infinite';
+                        }, 600);
                     }
                 }, scene.delay);
             });
             
-            // Flash effects during cutscene
+            // Fading memory effect
             setTimeout(() => {
-                // Red flash
-                const flash1 = document.createElement('div');
-                flash1.style.cssText = 'position:fixed;inset:0;background:#8b0000;opacity:0;z-index:10001;animation:flashAnim 0.3s;';
-                document.body.appendChild(flash1);
-                setTimeout(() => flash1.remove(), 300);
-            }, 1500);
+                overlay.style.transition = 'opacity 1.5s';
+                overlay.style.opacity = '0.3';
+            }, 14500);
             
+            // Memory ends, return to reality
             setTimeout(() => {
-                // Purple flash
-                const flash2 = document.createElement('div');
-                flash2.style.cssText = 'position:fixed;inset:0;background:#330066;opacity:0;z-index:10001;animation:flashAnim 0.5s;';
-                document.body.appendChild(flash2);
-                setTimeout(() => flash2.remove(), 500);
-            }, 4500);
-            
-            // End cutscene
-            setTimeout(() => {
-                overlay.style.opacity = '0';
-                setTimeout(() => {
-                    overlay.remove();
-                    document.body.classList.add('secret-mode');
-                    // Show permanent secret mode indicator
-                    showSecretModeIndicator();
-                }, 500);
-            }, 9500);
+                overlay.remove();
+                document.body.classList.add('secret-mode');
+                showSecretModeIndicator();
+            }, 16000);
         }
         
         function showSecretModeIndicator() {
             const indicator = document.createElement('div');
+            indicator.id = 'secret-indicator';
             indicator.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#1a0033,#330066);padding:40px 60px;border-radius:20px;border:4px solid #ff00ff;z-index:10000;text-align:center;box-shadow:0 0 50px rgba(255,0,255,0.8);';
-            indicator.innerHTML = '<h2 style="color:#ff00ff;font-size:2.5rem;margin-bottom:15px;text-shadow:0 0 20px #ff00ff;">🔓 SECRET MODE</h2><p style="color:#fff;font-size:1.2rem;">You unlocked the hidden experience</p>';
+            indicator.innerHTML = '<h2 style="color:#ff00ff;font-size:2.5rem;margin-bottom:15px;text-shadow:0 0 20px #ff00ff;">🔓 SECRET MODE</h2><p style="color:#fff;font-size:1.2rem;">You unlocked the hidden experience</p><p id="secret-hidden-hint" style="color:rgba(255,0,255,0.3);font-size:0.8rem;margin-top:20px;cursor:pointer;" onclick="playSecretEndingCutscene()">Press the R to remember more...</p>';
             document.body.appendChild(indicator);
+            // Make the R in SECRET MODE clickable to trigger ending
+            const titleEl = indicator.querySelector('h2');
+            titleEl.innerHTML = titleEl.textContent.replace('SECRET MODE', 'SECRET MODE').replace('🔓 ', '🔓 <span style="cursor:pointer;" onclick="playSecretEndingCutscene()">R</span>');
             setTimeout(() => {
                 indicator.style.transition = 'opacity 0.5s';
                 indicator.style.opacity = '0';
                 setTimeout(() => indicator.remove(), 500);
             }, 3000);
+        }
+        
+        function playSecretEndingCutscene() {
+            // Remove any existing overlays
+            document.querySelectorAll('#cutscene-overlay, #secret-indicator').forEach(el => el.remove());
+            secretOneMoreGame = true;
+            localStorage.setItem('chessSecretOneMoreGame', 'true');
+            
+            const overlay = document.createElement('div');
+            overlay.id = 'cutscene-overlay';
+            overlay.style.cssText = 'position:fixed;inset:0;background:#1a1520;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s;overflow:hidden;';
+            document.body.appendChild(overlay);
+            
+            // Wake up scene - bedroom
+            const scenes = [
+                { text: 'You wake up...', color: '#8888aa', delay: 500 },
+                { text: 'In a cold sweat.', color: '#777799', delay: 1800 },
+                { text: 'A chess board beside you...', emoji: '♟️', color: '#ffd700', delay: 3500 },
+                { text: 'One more game.', color: '#aaaacc', delay: 5500 },
+                { text: 'Win or lose...', color: '#9999bb', delay: 7200 },
+                { text: 'It\'s time to end this.', color: '#ff00ff', delay: 9000 }
+            ];
+            
+            // Bedroom scene with bed
+            const bed = document.createElement('div');
+            bed.style.cssText = 'position:absolute;bottom:20%;left:50%;transform:translateX(-50%);font-size:4rem;opacity:0.3;z-index:5;';
+            bed.textContent = '🛏️';
+            overlay.appendChild(bed);
+            
+            scenes.forEach(scene => {
+                setTimeout(() => {
+                    const textEl = document.createElement('div');
+                    textEl.style.cssText = `color:${scene.color};font-size:1.8rem;font-weight:bold;text-shadow:0 0 15px ${scene.color}, 0 0 30px ${scene.color}40;font-family:Georgia,serif;font-style:italic;opacity:0;transition:opacity 0.8s;position:absolute;left:50%;transform:translateX(-50%);top:${45 + scenes.indexOf(scene) * 5}%;z-index:30;text-align:center;`;
+                    textEl.textContent = scene.text;
+                    overlay.appendChild(textEl);
+                    setTimeout(() => textEl.style.opacity = '1', 50);
+                }, scene.delay);
+            });
+            
+            // Transition to game prompt
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.remove();
+                    // Show prompt to play one more game
+                    const prompt = document.createElement('div');
+                    prompt.id = 'one-more-prompt';
+                    prompt.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#1a0033,#330066);padding:50px 80px;border-radius:25px;border:4px solid #ff00ff;z-index:10000;text-align:center;box-shadow:0 0 60px rgba(255,0,255,0.8);';
+                    prompt.innerHTML = '<h2 style="color:#ff00ff;font-size:2.5rem;margin-bottom:20px;text-shadow:0 0 20px #ff00ff;">🌙 ONE MORE GAME 🌙</h2><p style="color:#cc99dd;font-size:1.3rem;margin-bottom:30px;">Play against HARD AI to see the ending</p><button onclick="startOneMoreGame()" style="background:linear-gradient(135deg,#6600cc,#330066);color:#fff;border:3px solid #ff00ff;padding:15px 40px;font-size:1.3rem;border-radius:15px;cursor:pointer;">BEGIN</button>';
+                    document.body.appendChild(prompt);
+                }, 500);
+            }, 11500);
+        }
+        
+        function startOneMoreGame() {
+            document.querySelectorAll('#one-more-prompt').forEach(el => el.remove());
+            // Start game against hard AI
+            aiLevel = 3;
+            gameMode = 'ai';
+            over = false;
+            sel = null;
+            moves = [];
+            turn = 'white';
+            init();
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('game').classList.add('active');
+            render();
+        }
+        
+        function playEndingCutscene() {
+            secretEndingUnlocked = true;
+            localStorage.setItem('chessSecretEnding', 'true');
+            document.body.classList.add('secret-ending');
+            
+            const overlay = document.createElement('div');
+            overlay.id = 'cutscene-overlay';
+            overlay.style.cssText = 'position:fixed;inset:0;background:#0a0a15;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.5s;overflow:hidden;';
+            document.body.appendChild(overlay);
+            
+            // Add ambient effect
+            overlay.innerHTML = `
+                <div style="position:absolute;inset:0;background:linear-gradient(180deg,#1a1525 0%,#2a2535 50%,#0a0a15 100%);"></div>
+                <div style="position:absolute;inset:0;background: radial-gradient(ellipse at 50% 30%, rgba(100,80,120,0.3) 0%, transparent 60%);"></div>
+            `;
+            
+            const scenes = [
+                { text: 'The game... ended.', color: '#8888aa', delay: 500 },
+                { text: 'And with it...', color: '#777799', delay: 2000 },
+                { text: 'The chains of the nightmare broke.', color: '#9999bb', delay: 4000 },
+                { text: 'You look up...', color: '#aaaacc', delay: 6000 },
+                { text: '🚪 A door...', color: '#cc99dd', delay: 8000 },
+                { text: 'Opens before you.', color: '#bbaadd', delay: 10000 },
+                { text: 'Light floods in...', color: '#ffffff', delay: 12000 },
+                { text: '☀️', color: '#ffff88', delay: 13500 },
+                { text: 'I\'m finally...', color: '#ff00ff', delay: 15000 },
+                { text: '🆓 FREE 🆓', color: '#ff00ff', delay: 17000, big: true }
+            ];
+            
+            // Door that opens
+            const door = document.createElement('div');
+            door.id = 'ending-door';
+            door.style.cssText = 'position:absolute;top:25%;left:50%;transform:translateX(-50%);font-size:5rem;z-index:10;opacity:0;transition:all 1s ease-out;';
+            door.textContent = '🚪';
+            overlay.appendChild(door);
+            
+            // Door opens animation
+            setTimeout(() => {
+                door.style.opacity = '0.8';
+            }, 8000);
+            
+            setTimeout(() => {
+                door.style.fontSize = '7rem';
+                door.style.filter = 'drop-shadow(0 0 30px #ffff88)';
+            }, 12000);
+            
+            // Light beam effect
+            setTimeout(() => {
+                const light = document.createElement('div');
+                light.style.cssText = 'position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:0;border-left:100px solid transparent;border-right:100px solid transparent;border-bottom:300px solid rgba(255,255,200,0.3);z-index:5;';
+                door.appendChild(light);
+                light.style.animation = 'lightGrow 2s ease-out forwards';
+            }, 12500);
+            
+            scenes.forEach((scene, i) => {
+                setTimeout(() => {
+                    const textEl = document.createElement('div');
+                    const size = scene.big ? '3rem' : '1.8rem';
+                    textEl.style.cssText = `color:${scene.color};font-size:${size};font-weight:bold;text-shadow:0 0 20px ${scene.color}, 0 0 40px ${scene.color}60;font-family:Georgia,serif;font-style:italic;opacity:0;transition:opacity 0.8s;position:absolute;left:50%;transform:translateX(-50%);top:${40 + i * 5}%;z-index:30;text-align:center;`;
+                    textEl.textContent = scene.text;
+                    overlay.appendChild(textEl);
+                    setTimeout(() => textEl.style.opacity = '1', 50);
+                    
+                    if (scene.big) {
+                        setTimeout(() => {
+                            textEl.style.animation = 'menuGlitchText 0.3s ease-in-out infinite';
+                        }, 500);
+                    }
+                }, scene.delay);
+            });
+            
+            // End and return to menu
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.remove();
+                    document.body.classList.remove('nightmare-mode');
+                    document.body.classList.remove('fnaf-room');
+                    document.querySelectorAll('.fnaf-room, .fnaf-wall-left, .fnaf-wall-right, .fnaf-floor, .fnaf-ambient').forEach(el => el.remove());
+                    document.getElementById('menu').classList.remove('hidden');
+                    document.getElementById('game').classList.remove('active');
+                    aiLevel = 0;
+                    over = false;
+                    secretOneMoreGame = false;
+                    
+                    // Show ending celebration
+                    const ending = document.createElement('div');
+                    ending.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#1a0033,#330066);padding:50px 80px;border-radius:25px;border:4px solid #ff00ff;z-index:10000;text-align:center;box-shadow:0 0 60px rgba(255,0,255,0.8);';
+                    ending.innerHTML = '<h2 style="color:#ff00ff;font-size:2.5rem;margin-bottom:15px;text-shadow:0 0 20px #ff00ff;">🆓 SECRET ENDING 🆓</h2><p style="color:#fff;font-size:1.2rem;">You escaped the nightmare forever!</p><button onclick="this.parentElement.remove()" style="margin-top:20px;background:#6600cc;color:#fff;border:2px solid #ff00ff;padding:10px 30px;font-size:1rem;border-radius:10px;cursor:pointer;">CONTINUE</button>';
+                    document.body.appendChild(ending);
+                }, 500);
+            }, 19500);
         }
         
         function initHallwaySystem() {
@@ -2520,6 +2771,12 @@
             // Clean up FNAF room on game over
             stopHallwaySystem();
             document.querySelectorAll('.fnaf-room, .fnaf-wall-left, .fnaf-wall-right, .fnaf-floor, .fnaf-ambient').forEach(el => el.remove());
+            
+            // If in secret ending game, play ending cutscene
+            if (secretOneMoreGame && aiLevel === 3) {
+                setTimeout(playEndingCutscene, 1000);
+            }
+            
             render();
         }
 
