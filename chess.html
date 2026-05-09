@@ -1052,6 +1052,9 @@
             <button class="menu-btn" style="padding: 12px 25px; font-size: 1.1rem; margin: 5px;" onclick="playSoundSafe('click');startGameAI(2)">Medium</button>
             <button class="menu-btn" style="padding: 12px 25px; font-size: 1.1rem; margin: 5px;" onclick="playSoundSafe('click');startGameAI(3)">Hard</button>
             <button class="menu-btn" style="padding: 12px 25px; font-size: 1.1rem; margin: 5px; background: linear-gradient(135deg, #3d0000, #8b0000);" onclick="playSoundSafe('click');startGameAI(4)">Nightmare</button>
+            <div style="margin-top: 40px;">
+                <button class="menu-btn" style="font-size: 1rem; opacity: 0.6;" onclick="playSoundSafe('click');showCredits()">📜 Credits</button>
+            </div>
         </div>
     </div>
 
@@ -1478,6 +1481,65 @@
             }
         }
         console.log('%c🔮 Secret Mode Tip', 'color:#ff00ff;font-weight:bold', '- Run toggleSecretMode() to toggle secret mode on/off');
+
+        function showCredits() {
+            const overlay = document.createElement('div');
+            overlay.id = 'credits-overlay';
+            overlay.style.cssText = 'position:fixed;inset:0;background:linear-gradient(180deg,#0a0a15 0%,#1a1525 50%,#0a0a15 100%);z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding-top:50px;overflow-y:auto;';
+            document.body.appendChild(overlay);
+            
+            // Title
+            const title = document.createElement('h1');
+            title.style.cssText = 'color:#ffd700;font-size:3rem;margin-bottom:50px;text-shadow:0 0 30px rgba(255,215,0,0.5);animation:float 3s ease-in-out infinite;';
+            title.textContent = '📜 CREDITS 📜';
+            overlay.appendChild(title);
+            
+            // Credit sections
+            const credits = [
+                { role: 'Game Development', name: 'Raiwin', emoji: '🎮' },
+                { role: 'AI Programming', name: 'Raiwin', emoji: '🤖' },
+                { role: 'Art & Design', name: 'Raiwin', emoji: '🎨' },
+                { role: 'Sound Design', name: 'Raiwin', emoji: '🔊' },
+                { role: 'Story & Narrative', name: 'Raiwin', emoji: '📖' },
+                { role: 'Nightmare Mode', name: 'Raiwin', emoji: '😱' },
+                { role: 'Secret Ending', name: 'Raiwin', emoji: '🔓' },
+                { role: 'AI Assistant', name: 'Elliot ⚡', emoji: '🤝' },
+                { role: 'Special Thanks', name: 'You for playing!', emoji: '❤️' }
+            ];
+            
+            credits.forEach((credit, i) => {
+                setTimeout(() => {
+                    const creditEl = document.createElement('div');
+                    creditEl.style.cssText = 'text-align:center;margin:30px 0;opacity:0;transition:opacity 0.6s ease-out;';
+                    creditEl.innerHTML = `<span style="font-size:2.5rem;display:block;margin-bottom:10px;">${credit.emoji}</span><span style="color:#888;font-size:1rem;display:block;">${credit.role}</span><span style="color:#fff;font-size:1.4rem;font-weight:bold;display:block;margin-top:5px;">${credit.name}</span>`;
+                    overlay.appendChild(creditEl);
+                    setTimeout(() => creditEl.style.opacity = '1', 50);
+                }, 500 + i * 400);
+            });
+            
+            // Closing message
+            setTimeout(() => {
+                const closing = document.createElement('div');
+                closing.style.cssText = 'text-align:center;margin:50px 0 30px;opacity:0;transition:opacity 0.8s;';
+                closing.innerHTML = `<p style="color:#aaa;font-size:1.3rem;font-style:italic;">"Thank you for playing Chess ♟️"</p><p style="color:#ffd700;font-size:0.9rem;margin-top:20px;">© 2026 Raiwin</p>`;
+                overlay.appendChild(closing);
+                setTimeout(() => closing.style.opacity = '1', 50);
+            }, 500 + credits.length * 400 + 300);
+            
+            // Close button
+            setTimeout(() => {
+                const closeBtn = document.createElement('button');
+                closeBtn.style.cssText = 'padding:12px 40px;font-size:1.1rem;background:linear-gradient(135deg,#333,#222);color:#fff;border:2px solid #555;border-radius:10px;cursor:pointer;margin-bottom:50px;transition:transform 0.2s;';
+                closeBtn.textContent = '✖ Close';
+                closeBtn.onclick = () => {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.remove(), 300);
+                };
+                closeBtn.onmouseover = () => closeBtn.style.transform = 'scale(1.05)';
+                closeBtn.onmouseout = () => closeBtn.style.transform = 'scale(1)';
+                overlay.appendChild(closeBtn);
+            }, 500 + credits.length * 400 + 500);
+        }
 
         function loadData() {
             const saved = localStorage.getItem('chessShop');
