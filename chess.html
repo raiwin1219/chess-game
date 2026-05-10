@@ -2511,7 +2511,7 @@
             document.body.appendChild(indicator);
             // Make the R in SECRET MODE clickable to trigger ending
             const titleEl = indicator.querySelector('h2');
-            titleEl.innerHTML = titleEl.textContent.replace('SECRET MODE', 'SECRET MODE').replace('🔓 ', '🔓 <span style="cursor:pointer;" onclick="playSecretEndingCutscene()">R</span>');
+            titleEl.innerHTML = titleEl.textContent.replace('SECRET MODE', 'SECRET MODE').replace('🔓 ', '🔓 <span style="cursor:pointer;" onclick="playSecretEndingCutscene()">R</span> ');
             setTimeout(() => {
                 indicator.style.transition = 'opacity 0.5s';
                 indicator.style.opacity = '0';
